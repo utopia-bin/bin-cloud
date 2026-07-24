@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.utopiabin.cloud.platform.mapper.system.SysDictOptionsMapper">
+    <select id="listWithCode" resultType="cn.utopiabin.cloud.platform.model.vo.system.SysDictOptionsItemVO">
+        SELECT
+            d.`code`,
+            do.`id`,
+            do.`parent_id`,
+            do.`option_name`,
+            do.`option_value`
+        FROM `sys_dict` d
+        INNER JOIN `sys_dict_options` do ON d.`id` = do.`dict_id`
+        WHERE d.`is_delete` = 0
+          AND do.`is_delete` = 0
+        <if test="code != null and code != ''">
+            AND d.`code` = #{code}
+        </if>
+        ORDER BY do.`parent_id`, do.`sort`, do.`id`
+    </select>
+</mapper>

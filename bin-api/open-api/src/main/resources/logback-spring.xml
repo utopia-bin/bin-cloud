@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+    <property name="APP_NAME" value="open-api"/>
+    <property name="LOG_PATH" value="./logs/open"/>
+    <property name="LOG_FILE" value="open.log"/>
+
+    <include resource="logback-base.xml"/>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="ERROR_FILE"/>
+    </root>
+
+    <!-- 业务日志 -->
+    <logger name="cn.utopiabin.cloud" level="DEBUG"/>
+</configuration>
