@@ -1,6 +1,7 @@
 package cn.utopiabin.cloud.platform.model.dto.system;
 
 import cn.utopiabin.cloud.common.model.dto.PageQuery;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -13,29 +14,21 @@ import java.time.LocalDateTime;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
+@Schema(description = "字典分页查询")
 public class SysDictPageQuery extends PageQuery {
-    /**
-     * 字典名称
-     */
+
+    @Schema(description = "字典名称")
     private String name;
 
-    /**
-     * 字典编码
-     */
+    @Schema(description = "字典编码")
     private String code;
 
-    /**
-     * 是否启用
-     */
+    @Schema(description = "是否启用")
     private Boolean available;
 
-    /**
-     * 开始时间
-     */
+    @Schema(description = "创建时间起")
     private LocalDateTime startTime;
 
-    /**
-     * 结束时间
-     */
+    @Schema(description = "创建时间止")
     private LocalDateTime endTime;
 }

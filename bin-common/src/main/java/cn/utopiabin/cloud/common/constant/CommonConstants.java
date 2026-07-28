@@ -36,6 +36,9 @@ public final class CommonConstants {
     /** 灰度版本号 */
     public static final String HEADER_VERSION = "X-Version";
 
+    /** 原始 JWT Token (网关鉴权后透传, 用于主动注销黑名单) */
+    public static final String HEADER_TOKEN = "X-Token";
+
     // ==================== Token ====================
 
     /** Token 查询参数名 */

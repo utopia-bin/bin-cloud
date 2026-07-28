@@ -1,6 +1,7 @@
 package cn.utopiabin.cloud.platform.model.vo.system;
 
 import cn.utopiabin.cloud.common.json.JsonSerializable;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -11,11 +12,21 @@ import lombok.EqualsAndHashCode;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
+@Schema(description = "字典项缓存VO")
 public class SysDictOptionsItemVO extends JsonSerializable {
 
+    @Schema(description = "字典项ID")
     private Long id;
+
+    @Schema(description = "父级ID")
     private Long parentId;
+
+    @Schema(description = "字典编码")
     private String code;
+
+    @Schema(description = "字典项名称")
     private String optionName;
+
+    @Schema(description = "字典项值")
     private String optionValue;
 }

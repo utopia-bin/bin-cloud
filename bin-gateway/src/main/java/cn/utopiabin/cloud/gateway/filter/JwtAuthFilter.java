@@ -85,12 +85,14 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
                                             h.remove(CommonConstants.HEADER_USER_NAME);
                                             h.remove(CommonConstants.HEADER_TENANT_ID);
                                             h.remove(CommonConstants.HEADER_USER_ROLES);
+                                            h.remove(CommonConstants.HEADER_TOKEN);
                                         })
                                         .header(CommonConstants.HEADER_USER_ID, payload.getUserId())
                                         .header(CommonConstants.HEADER_USER_NAME, payload.getUsername())
                                         .header(CommonConstants.HEADER_TENANT_ID, payload.getTenantId())
                                         .header(CommonConstants.HEADER_USER_ROLES,
                                                 payload.getRoles() != null ? String.join(",", payload.getRoles()) : "")
+                                        .header(CommonConstants.HEADER_TOKEN, token)
                                         .build();
 
                                 log.debug("JWT 鉴权通过: userId={}, tenantId={}, path={}",

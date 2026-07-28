@@ -1,0 +1,43 @@
+package cn.utopiabin.cloud.platform.model.dto.iam;
+
+import cn.utopiabin.cloud.common.model.dto.IdDTO;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * 系统角色编辑 DTO
+ *
+ * @since 1.0
+ */
+@Data
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+@Schema(description = "系统角色编辑参数")
+public class SysRoleUpdateDTO extends IdDTO {
+
+    @NotBlank(message = "角色名称不能为空")
+    @Size(max = 50, message = "角色名称长度不能超过50个字符")
+    @Schema(description = "角色名称", example = "管理员", requiredMode = Schema.RequiredMode.REQUIRED)
+    private String name;
+
+    @NotBlank(message = "角色编码不能为空")
+    @Size(max = 50, message = "角色编码长度不能超过50个字符")
+    @Schema(description = "角色编码（唯一）", example = "admin", requiredMode = Schema.RequiredMode.REQUIRED)
+    private String code;
+
+    @Schema(description = "数据权限范围: 1全部 2本部门 3本部门及以下 4仅本人", example = "1")
+    private Integer dataScope;
+
+    @Schema(description = "是否启用")
+    private Boolean available;
+
+    @Schema(description = "排序码", example = "10")
+    private Integer sort;
+
+    @Schema(description = "备注")
+    private String comment;
+}
