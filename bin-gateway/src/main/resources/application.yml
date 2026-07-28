@@ -4,3 +4,203 @@
 spring:
   application:
     name: bin-gateway
+
+  # 引入 Nacos 动态配置
+  config:
+    import:
+      - optional:nacos:bin-gateway.yml
+      - optional:nacos:bin-gateway-routes.yml
+
+  # Nacos 服务发现 + 配置中心
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+        namespace: ${NACOS_NAMESPACE:public}
+        group: DEFAULT_GROUP
+        username: ${NACOS_USERNAME:nacos}
+        password: ${NACOS_PASSWORD:nacos}
+      config:
+        server-addr: 127.0.0.1:8848
+        namespace: ${NACOS_NAMESPACE:public}
+        group: DEFAULT_GROUP
+        file-extension: yml
+        refresh-enabled: true
+        username: ${NACOS_USERNAME:nacos}
+        password: ${NACOS_PASSWORD:nacos}
+
+    # Gateway 路由配置
+    gateway:
+      server:
+        webflux:
+          discovery:
+            locator:
+              enabled: false  # 关闭自动路由发现, 手动声明路由
+              lower-case-service-id: true
+
+          routes:
+            # ==================== admin-api ====================
+            - id: admin-api
+              uri: lb://admin-api
+              predicates:
+                - Path=/admin/**
+              filters:
+                - StripPrefix=1
+                - name: CircuitBreaker
+                  args:
+                    name: adminApiCB
+                    fallbackUri: forward:/fallback/admin
+
+            # ==================== open-api ====================
+            - id: open-api
+              uri: lb://open-api
+              predicates:
+                - Path=/open/**
+              filters:
+                - StripPrefix=1
+                - name: CircuitBreaker
+                  args:
+                    name: openApiCB
+                    fallbackUri: forward:/fallback/open
+
+            # ==================== platform-api ====================
+            - id: platform-api
+              uri: lb://platform-api
+              predicates:
+                - Path=/platform/**
+              filters:
+                - StripPrefix=1
+                - name: CircuitBreaker
+                  args:
+                    name: platformApiCB
+                    fallbackUri: forward:/fallback/platform
+
+            # ==================== thirdparty ====================
+            - id: thirdparty
+              uri: lb://bin-thirdparty
+              predicates:
+                - Path=/thirdparty/**
+              filters:
+                - StripPrefix=1
+                - name: CircuitBreaker
+                  args:
+                    name: thirdpartyCB
+                    fallbackUri: forward:/fallback/thirdparty
+
+  # Redis 配置 (限流 + Token 黑名单)
+  data:
+    redis:
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE:0}
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 16
+          max-idle: 8
+          min-idle: 4
+          max-wait: 3000ms
+
+# ==================== Gateway 自定义配置 ====================
+gateway:
+  # JWT 签名密钥 (HMAC-SHA256, 至少 256 bit / 32 字符)
+  jwt-secret: ${JWT_SECRET:changeme-this-is-a-default-jwt-secret-key-32chars}
+  # JWT 过期时间 (秒)
+  jwt-expiration: ${JWT_EXPIRATION:7200}
+  # 鉴权白名单路径
+  white-paths:
+    - /auth/**
+    - /public/**
+    - /swagger-ui/**
+    - /swagger-ui.html
+    - /v3/api-docs/**
+    - /webjars/**
+    - /favicon.ico
+    - /actuator/**
+    - /fallback/**
+  # 限流配置
+  rate-limit-enabled: true
+  rate-limit-replenish-rate: 10
+  rate-limit-burst-capacity: 20
+  rate-limit-per-minute: 100
+  # 灰度配置 (下游服务需在 Nacos 注册时设置元数据 canary=true)
+  canary-enabled: false
+  canary-ratio: 0.1
+  # Token 黑名单 (基于 Redis, 用于主动注销/踢人下线)
+  token-blacklist-enabled: false
+  # 请求体大小上限 (字节, 默认 10MB)
+  max-request-size: ${MAX_REQUEST_SIZE:10485760}
+
+# ==================== Resilience4j 熔断配置 ====================
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        # 滑动窗口类型: COUNT_BASED (基于请求数量)
+        sliding-window-type: COUNT_BASED
+        # 滑动窗口大小
+        sliding-window-size: 10
+        # 熔断阈值 (失败率百分比)
+        failure-rate-threshold: 50
+        # 慢调用阈值 (秒)
+        slow-call-duration-threshold: 5s
+        # 慢调用比例阈值
+        slow-call-rate-threshold: 50
+        # 熔断开启后等待时间 (半开探测)
+        wait-duration-in-open-state: 10s
+        # 半开状态允许探测的请求数
+        permitted-number-of-calls-in-half-open-state: 3
+        # 记录异常的谓词
+        record-exceptions:
+          - org.springframework.web.reactive.function.client.WebClientResponseException
+          - java.util.concurrent.TimeoutException
+          - java.net.ConnectException
+    instances:
+      adminApiCB:
+        base-config: default
+      openApiCB:
+        base-config: default
+      platformApiCB:
+        base-config: default
+      thirdpartyCB:
+        base-config: default
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 30s
+
+# ==================== SpringDoc OpenAPI ====================
+springdoc:
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    urls-primary-name: admin-api
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  # 不聚合的组 (排除自身)
+  group-configs:
+    - group: gateway
+      paths-to-match: /**
+
+# ==================== 日志 ====================
+logging:
+  level:
+    cn.utopiabin.cloud.gateway: DEBUG
+    org.springframework.cloud.gateway: INFO
+    org.springframework.cloud.loadbalancer: INFO
+    reactor.netty: INFO
+
+# ==================== Actuator 监控 ====================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+  health:
+    redis:
+      enabled: true

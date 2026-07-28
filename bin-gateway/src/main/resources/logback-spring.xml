@@ -1,17 +1,87 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<configuration scan="true" scanPeriod="30 seconds">
-    <property name="APP_NAME" value="bin-gateway"/>
-    <property name="LOG_PATH" value="./logs/gateway"/>
-    <property name="LOG_FILE" value="gateway.log"/>
+<configuration scan="true" scanPeriod="60 seconds">
 
-    <include resource="logback-base.xml"/>
+    <!-- 项目名 -->
+    <springProperty scope="context" name="appName" source="spring.application.name" defaultValue="bin-gateway"/>
 
+    <!-- 日志输出目录 -->
+    <property name="LOG_DIR" value="./logs/${appName}"/>
+
+    <!-- 日志格式: 时间 | 级别 | traceId | 线程 | 类 | 消息 -->
+    <property name="LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} | %-5level | [%X{traceId:-N/A}] | %thread | %logger{36} | %msg%n"/>
+
+    <!-- 控制台输出 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- 全量日志文件 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/gateway.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/gateway.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- 错误日志单独输出 -->
+    <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/gateway-error.log</file>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/gateway-error.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- 访问日志 (仅记录请求入口/出口) -->
+    <appender name="ACCESS_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/gateway-access.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/gateway-access.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- TraceLogFilter 的日志单独输出到访问日志 -->
+    <logger name="cn.utopiabin.cloud.gateway.filter.TraceLogFilter" level="INFO" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="ACCESS_FILE"/>
+    </logger>
+
+    <!-- Gateway 自身日志 -->
+    <logger name="cn.utopiabin.cloud.gateway" level="DEBUG"/>
+
+    <!-- Spring Cloud Gateway 框架日志 -->
+    <logger name="org.springframework.cloud.gateway" level="INFO"/>
+
+    <!-- Netty 日志 (过于详细, 限制为 WARN) -->
+    <logger name="reactor.netty" level="INFO"/>
+    <logger name="io.netty" level="INFO"/>
+
+    <!-- 根日志 -->
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="FILE"/>
         <appender-ref ref="ERROR_FILE"/>
     </root>
 
-    <!-- 业务日志 -->
-    <logger name="cn.utopiabin.cloud" level="DEBUG"/>
 </configuration>
