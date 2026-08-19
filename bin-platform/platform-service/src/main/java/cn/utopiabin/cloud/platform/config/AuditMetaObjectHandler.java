@@ -1,6 +1,7 @@
 package cn.utopiabin.cloud.platform.config;
 
 import cn.utopiabin.cloud.common.context.UserContextHolder;
+import cn.utopiabin.cloud.platform.entity.base.BaseEntity;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.reflection.MetaObject;
@@ -11,7 +12,7 @@ import java.util.Date;
 /**
  * MyBatis-Plus 审计字段自动填充处理器
  * <p>
- * 配合 {@link cn.utopiabin.cloud.common.model.entity.BaseEntity} 中的
+ * 配合 {@link BaseEntity} 中的
  * {@code @TableField(fill = FieldFill.INSERT/INSERT_UPDATE)} 注解使用，
  * 自动填充以下字段:
  * <ul>

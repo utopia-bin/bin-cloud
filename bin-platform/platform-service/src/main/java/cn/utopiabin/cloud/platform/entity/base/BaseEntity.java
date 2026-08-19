@@ -1,4 +1,4 @@
-package cn.utopiabin.cloud.common.model.entity;
+package cn.utopiabin.cloud.platform.entity.base;
 
 import cn.utopiabin.cloud.common.json.JsonSerializable;
 import com.baomidou.mybatisplus.annotation.*;

@@ -1,6 +1,6 @@
 package cn.utopiabin.cloud.platform.entity.system;
 
-import cn.utopiabin.cloud.common.model.entity.BaseEntity;
+import cn.utopiabin.cloud.platform.entity.base.BaseEntity;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

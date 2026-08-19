@@ -15,19 +15,19 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 127.0.0.1:8848
-        namespace: ${NACOS_NAMESPACE:public}
-        group: DEFAULT_GROUP
+        server-addr: 192.168.220.128:8848
+        namespace: ${NACOS_NAMESPACE:bin-cloud}
+        group: Gateway
         username: ${NACOS_USERNAME:nacos}
-        password: ${NACOS_PASSWORD:nacos}
+        password: ${NACOS_PASSWORD:Beyond129814.}
       config:
-        server-addr: 127.0.0.1:8848
-        namespace: ${NACOS_NAMESPACE:public}
-        group: DEFAULT_GROUP
+        server-addr: 192.168.220.128:8848
+        namespace: ${NACOS_NAMESPACE:bin-cloud}
+        group: Gateway
         file-extension: yml
         refresh-enabled: true
         username: ${NACOS_USERNAME:nacos}
-        password: ${NACOS_PASSWORD:nacos}
+        password: ${NACOS_PASSWORD:Beyond129814.}
 
     # Gateway 路由配置
     gateway:
@@ -90,9 +90,9 @@ spring:
   # Redis 配置 (限流 + Token 黑名单)
   data:
     redis:
-      host: ${REDIS_HOST:127.0.0.1}
+      host: ${REDIS_HOST:192.168.220.128}
       port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
+      password: ${REDIS_PASSWORD:Redis_2026#x9K3mP}
       database: ${REDIS_DATABASE:0}
       timeout: 3000ms
       lettuce:

@@ -24,6 +24,16 @@
             <artifactId>platform-api</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <!-- MyBatis Plus (Spring Boot 3.x 专用 starter) -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+        </dependency>
+        <!-- MyBatis Plus JsQLParser -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-jsqlparser</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>

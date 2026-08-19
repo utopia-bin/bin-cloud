@@ -1,7 +1,7 @@
 package cn.utopiabin.cloud.platform.repository.base;
 
 import cn.utopiabin.cloud.common.exception.BizException;
-import cn.utopiabin.cloud.common.model.entity.BaseEntity;
+import cn.utopiabin.cloud.platform.entity.base.BaseEntity;
 import cn.utopiabin.cloud.platform.constant.PlatformErrorCode;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
