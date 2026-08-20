@@ -25,10 +25,10 @@
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
         </dependency>
-        <!-- SpringDoc OpenAPI (Swagger 3 文档) -->
+        <!-- SpringDoc OpenAPI (仅 Swagger 3 注解, 不含 UI, 保持接口模块轻量) -->
         <dependency>
             <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
         </dependency>
     </dependencies>
 </project>

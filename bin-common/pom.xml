@@ -46,15 +46,17 @@
             <groupId>com.alibaba.fastjson2</groupId>
             <artifactId>fastjson2</artifactId>
         </dependency>
-        <!-- Elasticsearch Java API Client -->
+        <!-- Elasticsearch Java API Client (可选,业务模块按需引入) -->
         <dependency>
             <groupId>co.elastic.clients</groupId>
             <artifactId>elasticsearch-java</artifactId>
+            <optional>true</optional>
         </dependency>
-        <!-- Elasticsearch Rest Client (传输层,提供 RestClient) -->
+        <!-- Elasticsearch Rest Client (传输层,提供 RestClient; 可选) -->
         <dependency>
             <groupId>org.elasticsearch.client</groupId>
             <artifactId>elasticsearch-rest-client</artifactId>
+            <optional>true</optional>
         </dependency>
         <!-- Redisson (可选,业务模块按需引入) -->
         <dependency>

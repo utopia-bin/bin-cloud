@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
  *   <li>admin-api → /admin</li>
  *   <li>open-api → /open</li>
  *   <li>platform-api → /platform</li>
- *   <li>bin-thirdparty → /thirdparty</li>
  * </ul>
  *
  * @since 1.0.0
@@ -67,7 +66,6 @@ public class SwaggerConfig {
      * 规则: 去除 "bin-" 前缀, 再去除 "-api" 后缀
      * <ul>
      *   <li>admin-api → admin</li>
-     *   <li>bin-thirdparty → thirdparty</li>
      * </ul>
      */
     private String resolveRoutePrefix(String serviceId) {

@@ -47,7 +47,6 @@
         <module>bin-gateway</module>
         <module>bin-api</module>
         <module>bin-platform</module>
-        <module>bin-thirdparty</module>
     </modules>
 
     <dependencyManagement>
@@ -158,10 +157,16 @@
                 <artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
                 <version>${springdoc.version}</version>
             </dependency>
-            <!-- SpringDoc OpenAPI WebMVC (Spring MVC 服务使用) -->
+            <!-- SpringDoc OpenAPI WebMVC (Spring MVC 服务使用, 含 swagger-ui) -->
             <dependency>
                 <groupId>org.springdoc</groupId>
                 <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${springdoc.version}</version>
+            </dependency>
+            <!-- SpringDoc OpenAPI WebMVC (仅注解 + 文档生成, 不含 UI, 供 API 接口模块使用) -->
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
                 <version>${springdoc.version}</version>
             </dependency>
         </dependencies>

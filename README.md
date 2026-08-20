@@ -21,7 +21,6 @@
 | admin-api          | 8100 | `admin-api`          |
 | open-api           | 8200 | `open-api`           |
 | platform-service   | 8300 | `platform-service`   |
-| thirdparty-service | 8400 | `thirdparty-service` |
 
 ## 快速开始
 

@@ -4,3 +4,43 @@ server:
 spring:
   application:
     name: open-api
+
+  # 引入 Nacos 动态配置
+  config:
+    import:
+      - optional:nacos:open-api.yml
+      - optional:nacos:open-api-dubbo.yml
+
+  # Nacos 服务发现 + 配置中心
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 192.168.220.128:8848
+        namespace: ${NACOS_NAMESPACE:bin-cloud}
+        group: Api
+        username: ${NACOS_USERNAME:nacos}
+        password: ${NACOS_PASSWORD:Beyond129814.}
+      config:
+        server-addr: 192.168.220.128:8848
+        namespace: ${NACOS_NAMESPACE:bin-cloud}
+        group: Api
+        file-extension: yml
+        refresh-enabled: true
+        username: ${NACOS_USERNAME:nacos}
+        password: ${NACOS_PASSWORD:Beyond129814.}
+
+# Dubbo (消费端)
+dubbo:
+  application:
+    name: open-api
+  registry:
+    address: nacos://${NACOS_SERVER_ADDR:192.168.220.128:8848}
+    parameters:
+      namespace: ${NACOS_NAMESPACE:bin-cloud}
+      group: Dubbo
+      username: ${NACOS_USERNAME:nacos}
+      password: ${NACOS_PASSWORD:Beyond129814.}
+  consumer:
+    check: false
+    timeout: 5000
+    retries: 0
