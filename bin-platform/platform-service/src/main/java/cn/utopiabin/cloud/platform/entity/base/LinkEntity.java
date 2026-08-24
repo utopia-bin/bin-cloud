@@ -7,9 +7,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * 关联表基类 —— 仅含主键，不含租户/审计字段
+ * 租户关联表基类
  * <p>
- * 适用于 sys_role_menu、sys_user_role 等纯关联表
+ * 关联数据也必须携带租户 ID，避免仅依赖两端主表的租户过滤形成跨租户脏关联。
  *
  * @since 1.0
  */
@@ -22,4 +22,7 @@ public abstract class LinkEntity extends JsonSerializable {
      */
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;
+
+    /** 租户 ID */
+    private Long tenantId;
 }

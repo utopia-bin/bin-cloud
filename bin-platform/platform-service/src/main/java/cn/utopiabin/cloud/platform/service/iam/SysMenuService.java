@@ -3,6 +3,7 @@ package cn.utopiabin.cloud.platform.service.iam;
 import cn.utopiabin.cloud.common.exception.BizException;
 import cn.utopiabin.cloud.common.utils.StrUtil;
 import cn.utopiabin.cloud.platform.constant.PlatformErrorCode;
+import cn.utopiabin.cloud.platform.annotation.RequirePermission;
 import cn.utopiabin.cloud.platform.entity.iam.SysMenu;
 import cn.utopiabin.cloud.platform.mapper.iam.SysMenuMapper;
 import cn.utopiabin.cloud.platform.model.dto.common.BatchDeleteDTO;
@@ -12,7 +13,6 @@ import cn.utopiabin.cloud.platform.model.dto.iam.SysMenuUpdateDTO;
 import cn.utopiabin.cloud.platform.model.vo.iam.SysMenuTreeVO;
 import cn.utopiabin.cloud.platform.model.vo.iam.SysMenuVO;
 import cn.utopiabin.cloud.platform.repository.iam.SysMenuRepository;
-import cn.utopiabin.cloud.platform.repository.iam.SysRoleMenuRepository;
 import cn.utopiabin.cloud.platform.service.PermissionService;
 import cn.utopiabin.cloud.platform.util.MenuTreeBuilder;
 import lombok.RequiredArgsConstructor;
@@ -34,12 +34,12 @@ import java.util.Optional;
 public class SysMenuService {
 
     private final SysMenuRepository menuRepository;
-    private final SysRoleMenuRepository roleMenuRepository;
     private final SysMenuMapper menuMapper;
     private final PermissionService permissionService;
 
     @Transactional(rollbackFor = Exception.class)
-    public void create(SysMenuCreateDTO dto) {
+    @RequirePermission("platform:menu:create")
+    public Long create(SysMenuCreateDTO dto) {
         var menu = dto.copyTo(SysMenu.class);
         menu.setParentId(Optional.ofNullable(dto.getParentId()).orElse(0L));
         menu.setType(Optional.ofNullable(dto.getType()).orElse(2));
@@ -54,9 +54,11 @@ public class SysMenuService {
         menuRepository.save(menu);
 
         permissionService.evictAllUserPermissions();
+        return menu.getId();
     }
 
     @Transactional(rollbackFor = Exception.class)
+    @RequirePermission("platform:menu:update")
     public void update(SysMenuUpdateDTO dto) {
         if (dto.getId().equals(dto.getParentId())) {
             throw new BizException(PlatformErrorCode.MENU_PARENT_SELF.getCode(),
@@ -64,6 +66,9 @@ public class SysMenuService {
         }
 
         var menu = menuRepository.getOrThrow(dto.getId());
+        if (!java.util.Objects.equals(menu.getVersion(), dto.getExpectedVersion())) {
+            throw new BizException(PlatformErrorCode.CONFLICT.getCode(), "菜单已被修改，请刷新后重试");
+        }
         menu.setParentId(Optional.ofNullable(dto.getParentId()).orElse(menu.getParentId()));
         menu.setType(Optional.ofNullable(dto.getType()).orElse(menu.getType()));
         menu.setName(StrUtil.defaultIfBlank(dto.getName(), menu.getName()));
@@ -74,56 +79,60 @@ public class SysMenuService {
         menu.setSort(Optional.ofNullable(dto.getSort()).orElse(menu.getSort()));
         menu.setVisible(Optional.ofNullable(dto.getVisible()).orElse(menu.getVisible()));
         menu.setAvailable(Optional.ofNullable(dto.getAvailable()).orElse(menu.getAvailable()));
-        menuRepository.updateById(menu);
+        if (!menuRepository.updateById(menu)) {
+            throw new BizException(PlatformErrorCode.CONFLICT.getCode(), "菜单已被修改，请刷新后重试");
+        }
 
         permissionService.evictAllUserPermissions();
     }
 
     @Transactional(rollbackFor = Exception.class)
+    @RequirePermission("platform:menu:delete")
     public void remove(Long id) {
         menuRepository.getOrThrow(id);
         if (menuRepository.hasChild(id)) {
             throw new BizException(PlatformErrorCode.MENU_HAS_CHILDREN.getCode(),
                     PlatformErrorCode.MENU_HAS_CHILDREN.getMsg());
         }
-        roleMenuRepository.removeByMenuId(id);
         menuRepository.removeById(id);
         permissionService.evictAllUserPermissions();
     }
 
     @Transactional(rollbackFor = Exception.class)
+    @RequirePermission("platform:menu:delete")
     public void batchDelete(BatchDeleteDTO dto) {
         for (Long id : dto.getIds()) {
             if (menuRepository.hasChild(id)) {
                 throw new BizException(PlatformErrorCode.MENU_HAS_CHILDREN.getCode(),
                         "菜单ID=" + id + " " + PlatformErrorCode.MENU_HAS_CHILDREN.getMsg());
             }
-            roleMenuRepository.removeByMenuId(id);
         }
         menuRepository.removeByIds(dto.getIds());
         permissionService.evictAllUserPermissions();
     }
 
+    @RequirePermission("platform:menu:read")
     public SysMenuVO get(Long id) {
         return menuRepository.getOrThrow(id).copyTo(SysMenuVO.class);
     }
 
+    @RequirePermission("platform:menu:read")
     public List<SysMenuVO> list(SysMenuListQuery query) {
         return menuRepository.list(query).stream()
                 .map(m -> m.copyTo(SysMenuVO.class))
                 .toList();
     }
 
+    @RequirePermission("platform:menu:read")
     public List<SysMenuTreeVO> tree(SysMenuListQuery query) {
         var all = menuRepository.list(query);
         return MenuTreeBuilder.build(all);
     }
 
-    public List<SysMenuVO> listByRoleIds(List<Long> roleIds) {
-        if (roleIds == null || roleIds.isEmpty()) {
-            return List.of();
-        }
-        List<SysMenu> menus = menuMapper.selectMenusByRoleIds(roleIds);
+    @RequirePermission("platform:menu:read")
+    public List<SysMenuVO> listByPermissionCodes(List<String> permissionCodes) {
+        List<String> codes = permissionCodes == null ? List.of() : permissionCodes;
+        List<SysMenu> menus = menuMapper.selectMenusByPermissionCodes(codes, codes.contains("*"));
         return menus.stream()
                 .map(m -> m.copyTo(SysMenuVO.class))
                 .toList();

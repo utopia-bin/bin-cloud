@@ -22,6 +22,7 @@ import java.util.List;
  * @since 1.0
  */
 @Slf4j
+@org.springframework.validation.annotation.Validated
 @DubboService
 @RequiredArgsConstructor
 @Tag(name = "认证授权", description = "认证授权 Dubbo 服务实现")
@@ -30,7 +31,7 @@ public class AuthApiImpl implements AuthApi {
     private final AuthService authService;
 
     @Override
-    public LoginResultVO login(LoginDTO dto) {
+    public LoginResultVO login(@jakarta.validation.Valid LoginDTO dto) {
         return authService.login(dto);
     }
 
@@ -50,7 +51,7 @@ public class AuthApiImpl implements AuthApi {
     }
 
     @Override
-    public void changePassword(ChangePasswordDTO dto) {
+    public void changePassword(@jakarta.validation.Valid ChangePasswordDTO dto) {
         authService.changePassword(dto);
     }
 }

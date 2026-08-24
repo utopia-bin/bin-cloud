@@ -26,14 +26,10 @@ public class SysUserRepository extends BaseRepository<SysUserMapper, SysUser> {
         return "用户不存在";
     }
 
-    /**
-     * 根据用户名查询用户
-     *
-     * @param username 用户名
-     * @return 用户实体，不存在返回 null
-     */
-    public SysUser getByUsername(String username) {
+    /** 根据租户和用户名查询用户。 */
+    public SysUser getByTenantIdAndUsername(Long tenantId, String username) {
         return getOne(new LambdaQueryWrapper<SysUser>()
+                .eq(SysUser::getTenantId, tenantId)
                 .eq(SysUser::getUsername, username));
     }
 

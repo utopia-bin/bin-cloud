@@ -21,6 +21,7 @@ import java.util.List;
  * @since 1.0
  */
 @Slf4j
+@org.springframework.validation.annotation.Validated
 @DubboService
 @RequiredArgsConstructor
 @Tag(name = "系统用户", description = "系统用户 Dubbo 服务实现")
@@ -29,12 +30,12 @@ public class SysUserApiImpl implements SysUserApi {
     private final SysUserService userService;
 
     @Override
-    public void create(SysUserCreateDTO dto) {
-        userService.create(dto);
+    public Long create(@jakarta.validation.Valid SysUserCreateDTO dto) {
+        return userService.create(dto);
     }
 
     @Override
-    public void update(SysUserUpdateDTO dto) {
+    public void update(@jakarta.validation.Valid SysUserUpdateDTO dto) {
         userService.update(dto);
     }
 
@@ -44,7 +45,7 @@ public class SysUserApiImpl implements SysUserApi {
     }
 
     @Override
-    public void batchDelete(BatchDeleteDTO dto) {
+    public void batchDelete(@jakarta.validation.Valid BatchDeleteDTO dto) {
         userService.batchDelete(dto);
     }
 
@@ -59,7 +60,7 @@ public class SysUserApiImpl implements SysUserApi {
     }
 
     @Override
-    public PageResult<SysUserVO> page(SysUserPageQuery query) {
+    public PageResult<SysUserVO> page(@jakarta.validation.Valid SysUserPageQuery query) {
         return userService.page(query);
     }
 
@@ -69,7 +70,7 @@ public class SysUserApiImpl implements SysUserApi {
     }
 
     @Override
-    public void assignRoles(SysUserAssignRolesDTO dto) {
+    public void assignRoles(@jakarta.validation.Valid SysUserAssignRolesDTO dto) {
         userService.assignRoles(dto);
     }
 

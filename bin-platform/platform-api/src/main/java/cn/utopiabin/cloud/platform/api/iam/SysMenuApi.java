@@ -22,7 +22,7 @@ import java.util.List;
 public interface SysMenuApi {
 
     @Operation(summary = "新增菜单", description = "上级菜单不能是自身")
-    void create(@Parameter(description = "菜单新增参数", required = true) SysMenuCreateDTO dto);
+    Long create(@Parameter(description = "菜单新增参数", required = true) SysMenuCreateDTO dto);
 
     @Operation(summary = "编辑菜单", description = "按ID编辑菜单信息")
     void update(@Parameter(description = "菜单编辑参数", required = true) SysMenuUpdateDTO dto);
@@ -42,6 +42,7 @@ public interface SysMenuApi {
     @Operation(summary = "获取菜单树", description = "按父子关系构建完整菜单树形结构")
     List<SysMenuTreeVO> tree(@Parameter(description = "列表查询条件") SysMenuListQuery query);
 
-    @Operation(summary = "根据角色ID列表获取菜单", description = "获取指定角色拥有的所有菜单（去重）")
-    List<SysMenuVO> listByRoleIds(@Parameter(description = "角色ID列表", required = true) List<Long> roleIds);
+    @Operation(summary = "根据权限码获取菜单", description = "菜单仅作为权限的导航投影")
+    List<SysMenuVO> listByPermissionCodes(
+            @Parameter(description = "权限码列表", required = true) List<String> permissionCodes);
 }

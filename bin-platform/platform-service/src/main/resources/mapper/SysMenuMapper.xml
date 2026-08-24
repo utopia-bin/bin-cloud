@@ -2,17 +2,23 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="cn.utopiabin.cloud.platform.mapper.iam.SysMenuMapper">
 
-    <!-- 根据角色 ID 列表查询菜单列表 (JOIN sys_role_menu + sys_menu, 去重, 仅含启用的菜单) -->
-    <select id="selectMenusByRoleIds" resultType="cn.utopiabin.cloud.platform.entity.iam.SysMenu">
-        SELECT DISTINCT m.*
+    <!-- 菜单是导航视图，角色授权只绑定权限资源。 -->
+    <select id="selectMenusByPermissionCodes" resultType="cn.utopiabin.cloud.platform.entity.iam.SysMenu">
+        SELECT m.*
         FROM `sys_menu` m
-        INNER JOIN `sys_role_menu` rm ON m.`id` = rm.`menu_id`
         WHERE m.`is_delete` = 0
           AND m.`available` = 1
-          AND rm.`role_id` IN
-        <foreach collection="roleIds" item="roleId" open="(" separator="," close=")">
-            #{roleId}
-        </foreach>
+          AND (
+            #{allPermissions} = TRUE
+            OR m.`permission` IS NULL
+            OR m.`permission` = ''
+            <if test="permissionCodes != null and !permissionCodes.isEmpty()">
+                OR m.`permission` IN
+                <foreach collection="permissionCodes" item="code" open="(" separator="," close=")">
+                    #{code}
+                </foreach>
+            </if>
+          )
         ORDER BY m.`sort` ASC, m.`id` DESC
     </select>
 

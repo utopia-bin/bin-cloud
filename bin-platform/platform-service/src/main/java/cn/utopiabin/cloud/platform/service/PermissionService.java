@@ -2,8 +2,10 @@ package cn.utopiabin.cloud.platform.service;
 
 import cn.utopiabin.cloud.platform.constant.CacheConstants;
 import cn.utopiabin.cloud.platform.entity.iam.SysMenu;
+import cn.utopiabin.cloud.platform.entity.iam.SysPermission;
 import cn.utopiabin.cloud.platform.entity.iam.SysRole;
 import cn.utopiabin.cloud.platform.mapper.iam.SysMenuMapper;
+import cn.utopiabin.cloud.platform.mapper.iam.SysPermissionMapper;
 import cn.utopiabin.cloud.platform.mapper.iam.SysUserMapper;
 import cn.utopiabin.cloud.platform.model.vo.iam.SysMenuTreeVO;
 import cn.utopiabin.cloud.platform.model.vo.iam.SysMenuVO;
@@ -40,6 +42,7 @@ public class PermissionService {
 
     private final SysUserMapper userMapper;
     private final SysMenuMapper menuMapper;
+    private final SysPermissionMapper permissionMapper;
 
     /**
      * 获取用户权限聚合 (含角色列表、菜单列表、菜单树)
@@ -58,18 +61,37 @@ public class PermissionService {
                 .map(r -> r.copyTo(SysRoleVO.class))
                 .toList();
 
-        // 2. 查询角色对应的菜单 (JOIN sys_role_menu + sys_menu, 单次查询)
-        List<SysMenu> menus = roleIds.isEmpty() ? List.of() : menuMapper.selectMenusByRoleIds(roleIds);
+        // 2. 查询角色拥有的权限资源。菜单只是权限的导航投影，不参与授权决策。
+        List<SysPermission> permissions = roleIds.isEmpty()
+                ? List.of()
+                : permissionMapper.selectByRoleIds(roleIds);
+        var permissionCodes = permissions.stream()
+                .map(SysPermission::getCode)
+                .distinct()
+                .toList();
+        boolean allPermissions = permissionCodes.contains("*");
+
+        // 3. 根据有效权限投影当前用户菜单。
+        List<SysMenu> menus = menuMapper.selectMenusByPermissionCodes(permissionCodes, allPermissions);
         var menuIds = menus.stream().map(SysMenu::getId).toList();
         var menuVOs = menus.stream()
                 .map(m -> m.copyTo(SysMenuVO.class))
                 .toList();
 
-        // 3. 构建菜单树
+        // 4. 构建菜单树
         List<SysMenuTreeVO> menuTree = MenuTreeBuilder.build(menus);
 
         log.debug("加载用户权限: userId={}, roles={}, menus={}", userId, roles.size(), menus.size());
-        return new UserPermissionVO(roleIds, roleVOs, menuIds, menuVOs, menuTree);
+        return new UserPermissionVO(roleIds, roleVOs, permissionCodes, menuIds, menuVOs, menuTree);
+    }
+
+    /** 服务端权限判定，禁止以菜单是否可见代替授权。 */
+    public boolean hasPermission(Long userId, String permissionCode) {
+        if (permissionCode == null || permissionCode.isBlank()) {
+            return false;
+        }
+        var codes = getUserPermissions(userId).getPermissionCodes();
+        return codes.contains("*") || codes.contains(permissionCode);
     }
 
     /**

@@ -23,6 +23,7 @@ import java.util.List;
  * @since 1.0
  */
 @Slf4j
+@org.springframework.validation.annotation.Validated
 @DubboService
 @RequiredArgsConstructor
 @Tag(name = "租户管理", description = "租户管理 Dubbo 服务实现")
@@ -31,12 +32,12 @@ public class TenantApiImpl implements TenantApi {
     private final TenantService tenantService;
 
     @Override
-    public void create(TenantCreateDTO dto) {
-        tenantService.create(dto);
+    public Long create(@jakarta.validation.Valid TenantCreateDTO dto) {
+        return tenantService.create(dto);
     }
 
     @Override
-    public void update(TenantUpdateDTO dto) {
+    public void update(@jakarta.validation.Valid TenantUpdateDTO dto) {
         tenantService.update(dto);
     }
 
@@ -56,7 +57,7 @@ public class TenantApiImpl implements TenantApi {
     }
 
     @Override
-    public PageResult<TenantVO> page(TenantPageQuery query) {
+    public PageResult<TenantVO> page(@jakarta.validation.Valid TenantPageQuery query) {
         return tenantService.page(query);
     }
 

@@ -3,6 +3,7 @@ package cn.utopiabin.cloud.platform.model.dto.tenant;
 import cn.utopiabin.cloud.common.model.dto.IdDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -20,6 +21,9 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = true)
 @Schema(description = "租户编辑参数")
 public class TenantUpdateDTO extends IdDTO {
+
+    @NotNull(message = "版本号不能为空")
+    private Integer expectedVersion;
 
     @NotBlank(message = "租户名称不能为空")
     @Size(max = 100, message = "租户名称长度不能超过100个字符")

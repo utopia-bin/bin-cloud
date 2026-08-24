@@ -19,6 +19,9 @@ import lombok.NoArgsConstructor;
 @Schema(description = "系统角色编辑参数")
 public class SysRoleUpdateDTO extends IdDTO {
 
+    @jakarta.validation.constraints.NotNull(message = "版本号不能为空")
+    private Integer expectedVersion;
+
     @NotBlank(message = "角色名称不能为空")
     @Size(max = 50, message = "角色名称长度不能超过50个字符")
     @Schema(description = "角色名称", example = "管理员", requiredMode = Schema.RequiredMode.REQUIRED)

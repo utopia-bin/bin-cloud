@@ -25,16 +25,30 @@ public enum PlatformErrorCode {
     PASSWORD_ERROR(1004, "用户名或密码错误"),
     PASSWORD_EMPTY(1005, "密码不能为空"),
     PASSWORD_WRONG(1006, "原密码错误"),
+    ACCOUNT_LOCKED(1007, "失败次数过多，账号已锁定，请稍后再试"),
+    PASSWORD_WEAK(1008, "密码强度不足，需包含大小写字母、数字，至少8位"),
+    CANNOT_OPERATE_SELF(1011, "不能对当前登录账号执行此操作"),
+    BUILT_IN_PROTECTED(1012, "内置数据不允许此操作"),
 
     ROLE_NOT_FOUND(1101, "角色不存在"),
     ROLE_CODE_DUPLICATE(1102, "角色编码已存在"),
+    ROLE_VERSION_CONFLICT(1103, "角色已被其他操作修改，请刷新后重试"),
+
+    PERMISSION_NOT_FOUND(1151, "权限资源不存在"),
+    PERMISSION_CODE_DUPLICATE(1152, "权限编码已存在"),
+    PERMISSION_IN_USE(1153, "权限正在被角色或菜单使用，不能删除"),
+    PERMISSION_VERSION_CONFLICT(1154, "权限资源已被其他操作修改，请刷新后重试"),
 
     MENU_NOT_FOUND(1201, "菜单不存在"),
     MENU_HAS_CHILDREN(1202, "存在子级菜单，请先删除子级"),
     MENU_PARENT_SELF(1203, "上级菜单不能是自身"),
 
+    TENANT_RELATION_VIOLATION(1251, "关联资源不属于当前租户"),
+
     TENANT_NOT_FOUND(1301, "租户不存在"),
     TENANT_CODE_DUPLICATE(1302, "租户编码已存在"),
+    TENANT_DISABLED(1303, "所属租户已被禁用，请联系管理员"),
+    TENANT_EXPIRED(1304, "所属租户已过期，请联系管理员"),
 
     DICT_NOT_FOUND(1401, "字典不存在"),
     DICT_DUPLICATE(1402, "字典名称或编码已存在"),

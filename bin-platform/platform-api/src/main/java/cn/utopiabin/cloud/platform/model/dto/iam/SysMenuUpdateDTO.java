@@ -19,6 +19,9 @@ import lombok.NoArgsConstructor;
 @Schema(description = "系统菜单编辑参数")
 public class SysMenuUpdateDTO extends IdDTO {
 
+    @jakarta.validation.constraints.NotNull(message = "版本号不能为空")
+    private Integer expectedVersion;
+
     @Schema(description = "父级ID，顶级为0", example = "0")
     private Long parentId;
 

@@ -26,6 +26,11 @@ public class TenantRepository extends BaseRepository<TenantMapper, Tenant> {
         return "租户不存在";
     }
 
+    public Tenant getByCode(String code) {
+        return getOne(new LambdaQueryWrapper<Tenant>()
+                .eq(Tenant::getCode, code));
+    }
+
     /**
      * 分页查询
      */

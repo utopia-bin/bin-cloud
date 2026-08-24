@@ -19,6 +19,9 @@ import lombok.NoArgsConstructor;
 @Schema(description = "系统用户编辑参数")
 public class SysUserUpdateDTO extends IdDTO {
 
+    @jakarta.validation.constraints.NotNull(message = "版本号不能为空")
+    private Integer expectedVersion;
+
     @NotBlank(message = "用户名不能为空")
     @Size(min = 3, max = 50, message = "用户名长度必须在3-50个字符之间")
     @Schema(description = "用户名（唯一）", example = "admin", requiredMode = Schema.RequiredMode.REQUIRED)

@@ -23,6 +23,7 @@ import java.util.List;
  * @since 1.0
  */
 @Slf4j
+@org.springframework.validation.annotation.Validated
 @DubboService
 @RequiredArgsConstructor
 @Tag(name = "系统菜单", description = "系统菜单 Dubbo 服务实现")
@@ -31,12 +32,12 @@ public class SysMenuApiImpl implements SysMenuApi {
     private final SysMenuService menuService;
 
     @Override
-    public void create(SysMenuCreateDTO dto) {
-        menuService.create(dto);
+    public Long create(@jakarta.validation.Valid SysMenuCreateDTO dto) {
+        return menuService.create(dto);
     }
 
     @Override
-    public void update(SysMenuUpdateDTO dto) {
+    public void update(@jakarta.validation.Valid SysMenuUpdateDTO dto) {
         menuService.update(dto);
     }
 
@@ -46,7 +47,7 @@ public class SysMenuApiImpl implements SysMenuApi {
     }
 
     @Override
-    public void batchDelete(BatchDeleteDTO dto) {
+    public void batchDelete(@jakarta.validation.Valid BatchDeleteDTO dto) {
         menuService.batchDelete(dto);
     }
 
@@ -66,7 +67,7 @@ public class SysMenuApiImpl implements SysMenuApi {
     }
 
     @Override
-    public List<SysMenuVO> listByRoleIds(List<Long> roleIds) {
-        return menuService.listByRoleIds(roleIds);
+    public List<SysMenuVO> listByPermissionCodes(List<String> permissionCodes) {
+        return menuService.listByPermissionCodes(permissionCodes);
     }
 }

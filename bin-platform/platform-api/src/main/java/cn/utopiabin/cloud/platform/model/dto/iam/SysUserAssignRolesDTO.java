@@ -25,4 +25,7 @@ public class SysUserAssignRolesDTO extends JsonSerializable {
     @NotNull(message = "角色ID列表不能为空")
     @Schema(description = "角色ID列表（空列表表示清除所有角色）", example = "[1, 2]", requiredMode = Schema.RequiredMode.REQUIRED)
     private List<Long> roleIds;
+
+    @NotNull(message = "用户版本号不能为空")
+    private Integer expectedVersion;
 }

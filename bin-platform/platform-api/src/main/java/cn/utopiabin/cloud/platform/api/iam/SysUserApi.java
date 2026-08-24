@@ -23,7 +23,7 @@ import java.util.List;
 public interface SysUserApi {
 
     @Operation(summary = "新增用户", description = "用户名唯一校验，密码BCrypt加密存储")
-    void create(@Parameter(description = "用户新增参数", required = true) SysUserCreateDTO dto);
+    Long create(@Parameter(description = "用户新增参数", required = true) SysUserCreateDTO dto);
 
     @Operation(summary = "编辑用户", description = "按ID编辑用户信息，密码不填则不修改")
     void update(@Parameter(description = "用户编辑参数", required = true) SysUserUpdateDTO dto);

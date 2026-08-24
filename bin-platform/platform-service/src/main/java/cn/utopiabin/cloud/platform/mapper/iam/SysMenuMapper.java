@@ -16,10 +16,12 @@ import java.util.List;
 public interface SysMenuMapper extends BaseMapper<SysMenu> {
 
     /**
-     * 根据角色 ID 列表查询菜单列表 (JOIN sys_role_menu + sys_menu, 去重)
+     * 根据生效的权限码投影可见菜单。
      *
-     * @param roleIds 角色 ID 列表
-     * @return 菜单列表 (仅含启用的菜单)
+     * @param permissionCodes 权限码列表
+     * @param allPermissions  是否拥有通配权限
+     * @return 菜单列表（仅含启用的菜单）
      */
-    List<SysMenu> selectMenusByRoleIds(@Param("roleIds") List<Long> roleIds);
+    List<SysMenu> selectMenusByPermissionCodes(@Param("permissionCodes") List<String> permissionCodes,
+                                               @Param("allPermissions") boolean allPermissions);
 }

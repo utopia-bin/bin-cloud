@@ -16,6 +16,10 @@ import lombok.EqualsAndHashCode;
 @Schema(description = "登录请求")
 public class LoginDTO extends JsonSerializable {
 
+    @NotBlank(message = "租户编码不能为空")
+    @Schema(description = "租户编码", example = "default", requiredMode = Schema.RequiredMode.REQUIRED)
+    private String tenantCode;
+
     @NotBlank(message = "用户名不能为空")
     @Schema(description = "用户名", example = "admin", requiredMode = Schema.RequiredMode.REQUIRED)
     private String username;

@@ -97,3 +97,27 @@ gateway:
   jwt-secret: ${JWT_SECRET:OTodCmc76iL29Vzveq+liHX99hIV3DK0JUp7WPae7tMt5Z5Co/V1yAtqnb8L6uinpD1RutyezEm8YPXlCVKTMw==}
   jwt-expiration: ${JWT_EXPIRATION:7200}
   token-blacklist-enabled: false
+
+# ==================== 平台安全配置 ====================
+platform:
+  # 多租户 SQL 隔离 (自动为业务 SQL 追加 tenant_id 条件)
+  tenant:
+    enabled: true
+    # 忽略租户过滤的表 (无 tenant_id 列或全局共享)
+    ignore-tables: sys_tenant,sys_menu,sys_permission,sys_operate_log
+  # 登录安全
+  login-security:
+    # 窗口期内最大密码失败次数, 达到后锁定账号
+    max-fail-count: 5
+    # 账号锁定时长 (秒, 默认 15 分钟)
+    lock-duration-seconds: 900
+    # 失败计数统计窗口 (秒, 默认 30 分钟)
+    fail-count-window-seconds: 1800
+    # 每次失败的基础延迟 (毫秒), 按失败次数线性递增
+    delay-base-ms: 200
+    # 失败延迟上限 (毫秒)
+    max-delay-ms: 3000
+    # 密码最小长度
+    password-min-length: 8
+    # 密码是否必须包含特殊字符
+    password-require-special: false

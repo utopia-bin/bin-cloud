@@ -29,6 +29,9 @@ public class UserPermissionVO extends JsonSerializable {
     @Schema(description = "角色列表")
     private List<SysRoleVO> roles;
 
+    @Schema(description = "权限码列表")
+    private List<String> permissionCodes;
+
     @Schema(description = "菜单ID列表")
     private List<Long> menuIds;
 

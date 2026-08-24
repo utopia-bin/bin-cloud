@@ -29,7 +29,7 @@ import java.util.List;
 @Tag(name = "认证授权", description = "登录、登出、获取当前用户信息及菜单权限、修改密码")
 public interface AuthApi {
 
-    @Operation(summary = "账号密码登录", description = "验证用户名密码，签发JWT Token，返回用户信息、角色及菜单树")
+    @Operation(summary = "账号密码登录", description = "验证租户编码、用户名和密码，签发JWT Token，返回用户信息、角色及菜单树")
     LoginResultVO login(@Parameter(description = "登录参数", required = true) LoginDTO dto);
 
     @Operation(summary = "退出登录", description = "将Token加入Redis黑名单，gateway将拦截已注销的Token")

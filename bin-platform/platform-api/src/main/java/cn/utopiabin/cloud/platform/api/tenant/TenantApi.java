@@ -22,7 +22,7 @@ import java.util.List;
 public interface TenantApi {
 
     @Operation(summary = "新增租户", description = "租户编码全局唯一校验")
-    void create(@Parameter(description = "租户新增参数", required = true) TenantCreateDTO dto);
+    Long create(@Parameter(description = "租户新增参数", required = true) TenantCreateDTO dto);
 
     @Operation(summary = "编辑租户", description = "按ID编辑租户信息")
     void update(@Parameter(description = "租户编辑参数", required = true) TenantUpdateDTO dto);

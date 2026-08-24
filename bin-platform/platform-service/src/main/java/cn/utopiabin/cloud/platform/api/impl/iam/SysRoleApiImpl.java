@@ -21,6 +21,7 @@ import java.util.List;
  * @since 1.0
  */
 @Slf4j
+@org.springframework.validation.annotation.Validated
 @DubboService
 @RequiredArgsConstructor
 @Tag(name = "系统角色", description = "系统角色 Dubbo 服务实现")
@@ -29,12 +30,12 @@ public class SysRoleApiImpl implements SysRoleApi {
     private final SysRoleService roleService;
 
     @Override
-    public void create(SysRoleCreateDTO dto) {
-        roleService.create(dto);
+    public Long create(@jakarta.validation.Valid SysRoleCreateDTO dto) {
+        return roleService.create(dto);
     }
 
     @Override
-    public void update(SysRoleUpdateDTO dto) {
+    public void update(@jakarta.validation.Valid SysRoleUpdateDTO dto) {
         roleService.update(dto);
     }
 
@@ -44,7 +45,7 @@ public class SysRoleApiImpl implements SysRoleApi {
     }
 
     @Override
-    public void batchDelete(BatchDeleteDTO dto) {
+    public void batchDelete(@jakarta.validation.Valid BatchDeleteDTO dto) {
         roleService.batchDelete(dto);
     }
 
@@ -59,7 +60,7 @@ public class SysRoleApiImpl implements SysRoleApi {
     }
 
     @Override
-    public PageResult<SysRoleVO> page(SysRolePageQuery query) {
+    public PageResult<SysRoleVO> page(@jakarta.validation.Valid SysRolePageQuery query) {
         return roleService.page(query);
     }
 
@@ -69,13 +70,13 @@ public class SysRoleApiImpl implements SysRoleApi {
     }
 
     @Override
-    public void assignMenus(SysRoleAssignMenusDTO dto) {
-        roleService.assignMenus(dto);
+    public void assignPermissions(@jakarta.validation.Valid SysRoleAssignPermissionsDTO dto) {
+        roleService.assignPermissions(dto);
     }
 
     @Override
-    public List<SysMenuVO> getMenus(Long roleId) {
-        return roleService.getMenus(roleId);
+    public List<SysPermissionVO> getPermissions(Long roleId) {
+        return roleService.getPermissions(roleId);
     }
 
     @Override

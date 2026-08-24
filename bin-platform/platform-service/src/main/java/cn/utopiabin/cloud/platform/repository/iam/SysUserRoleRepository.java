@@ -22,13 +22,14 @@ public class SysUserRoleRepository extends ServiceImpl<SysUserRoleMapper, SysUse
      * 为用户分配角色 (全量替换)
      */
     @Transactional(rollbackFor = Exception.class)
-    public void assignRoles(Long userId, List<Long> roleIds) {
+    public void assignRoles(Long tenantId, Long userId, List<Long> roleIds) {
         removeByUserId(userId);
         if (roleIds == null || roleIds.isEmpty()) {
             return;
         }
         var list = roleIds.stream().map(roleId -> {
             var ur = new SysUserRole();
+            ur.setTenantId(tenantId);
             ur.setUserId(userId);
             ur.setRoleId(roleId);
             return ur;
