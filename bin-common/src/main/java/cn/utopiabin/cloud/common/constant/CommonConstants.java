@@ -39,6 +39,12 @@ public final class CommonConstants {
     /** 原始 JWT Token (网关鉴权后透传, 用于主动注销黑名单) */
     public static final String HEADER_TOKEN = "X-Token";
 
+    /** 网关用户上下文签名 */
+    public static final String HEADER_GATEWAY_SIGNATURE = "X-Gateway-Signature";
+
+    /** 网关用户上下文签名时间戳 (毫秒) */
+    public static final String HEADER_GATEWAY_TIMESTAMP = "X-Gateway-Timestamp";
+
     // ==================== Token ====================
 
     /** Token 查询参数名 */

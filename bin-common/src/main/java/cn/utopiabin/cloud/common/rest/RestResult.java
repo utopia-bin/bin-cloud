@@ -1,6 +1,7 @@
 package cn.utopiabin.cloud.common.rest;
 
 import cn.utopiabin.cloud.common.json.JsonSerializable;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -14,25 +15,30 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
+@Schema(description = "统一 REST 接口响应")
 public class RestResult<T> extends JsonSerializable {
     /**
      * 状态码
      */
+    @Schema(description = "业务状态码，200 表示成功", example = "200")
     private int code;
 
     /**
      * 提示消息
      */
+    @Schema(description = "请求处理结果说明", example = "操作成功")
     private String msg;
 
     /**
      * 响应数据
      */
+    @Schema(description = "接口响应数据；无返回数据时为空")
     private T data;
 
     /**
      * 响应时间戳
      */
+    @Schema(description = "生成响应时的 Unix 毫秒时间戳", example = "1787621400000")
     private long timestamp;
 
     private RestResult() {

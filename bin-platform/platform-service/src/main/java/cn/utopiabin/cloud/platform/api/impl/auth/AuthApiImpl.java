@@ -3,6 +3,9 @@ package cn.utopiabin.cloud.platform.api.impl.auth;
 import cn.utopiabin.cloud.platform.api.auth.AuthApi;
 import cn.utopiabin.cloud.platform.model.dto.auth.ChangePasswordDTO;
 import cn.utopiabin.cloud.platform.model.dto.auth.LoginDTO;
+import cn.utopiabin.cloud.platform.model.dto.auth.PhoneLoginDTO;
+import cn.utopiabin.cloud.platform.model.dto.auth.PhoneRegisterDTO;
+import cn.utopiabin.cloud.platform.model.dto.auth.PhoneResetPasswordDTO;
 import cn.utopiabin.cloud.platform.model.vo.auth.CurrentUserVO;
 import cn.utopiabin.cloud.platform.model.vo.auth.LoginResultVO;
 import cn.utopiabin.cloud.platform.model.vo.iam.SysMenuTreeVO;
@@ -33,6 +36,21 @@ public class AuthApiImpl implements AuthApi {
     @Override
     public LoginResultVO login(@jakarta.validation.Valid LoginDTO dto) {
         return authService.login(dto);
+    }
+
+    @Override
+    public LoginResultVO registerByPhone(@jakarta.validation.Valid PhoneRegisterDTO dto) {
+        return authService.registerByPhone(dto);
+    }
+
+    @Override
+    public LoginResultVO loginByPhone(@jakarta.validation.Valid PhoneLoginDTO dto) {
+        return authService.loginByPhone(dto);
+    }
+
+    @Override
+    public void resetPasswordByPhone(@jakarta.validation.Valid PhoneResetPasswordDTO dto) {
+        authService.resetPasswordByPhone(dto);
     }
 
     @Override

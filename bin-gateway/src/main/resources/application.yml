@@ -25,3 +25,9 @@ spring:
         refresh-enabled: true
         username: ${NACOS_USERNAME:nacos}
         password: ${NACOS_PASSWORD:Beyond129814.}
+
+# 网关与下游 API 的用户上下文签名配置。生产环境必须设置同一个密钥。
+gateway:
+  context:
+    signing-secret: ${GATEWAY_CONTEXT_SIGNING_SECRET:${JWT_SECRET:}}
+    signature-max-age: 30s

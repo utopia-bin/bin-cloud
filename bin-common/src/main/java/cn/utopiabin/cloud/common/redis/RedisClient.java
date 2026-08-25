@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 
 import java.time.Duration;
 import java.util.Collection;
@@ -24,6 +25,11 @@ import java.util.function.Supplier;
 @Slf4j
 @RequiredArgsConstructor
 public class RedisClient {
+
+    private static final DefaultRedisScript<Long> COMPARE_AND_DELETE_SCRIPT = new DefaultRedisScript<>(
+            "if redis.call('get', KEYS[1]) == ARGV[1] then "
+                    + "return redis.call('del', KEYS[1]) else return 0 end",
+            Long.class);
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final RedissonClient redissonClient;
@@ -103,6 +109,20 @@ public class RedisClient {
             return clazz.cast(value);
         }
         return JsonUtil.convert(value, clazz);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T getAndDelete(String key) {
+        return (T) redisTemplate.opsForValue().getAndDelete(key(key));
+    }
+
+    /** 仅当值匹配时原子删除，适合一次性令牌或验证码消费。 */
+    public boolean compareAndDelete(String key, Object expectedValue) {
+        Long result = redisTemplate.execute(
+                COMPARE_AND_DELETE_SCRIPT,
+                List.of(key(key)),
+                expectedValue);
+        return result != null && result > 0;
     }
 
     public boolean setIfAbsent(String key, Object value, Duration duration) {

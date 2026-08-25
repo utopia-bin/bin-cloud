@@ -97,6 +97,9 @@ gateway:
   jwt-secret: ${JWT_SECRET:OTodCmc76iL29Vzveq+liHX99hIV3DK0JUp7WPae7tMt5Z5Co/V1yAtqnb8L6uinpD1RutyezEm8YPXlCVKTMw==}
   jwt-expiration: ${JWT_EXPIRATION:7200}
   token-blacklist-enabled: false
+  context:
+    signing-secret: ${GATEWAY_CONTEXT_SIGNING_SECRET:${JWT_SECRET:}}
+    signature-max-age: 30s
 
 # ==================== 平台安全配置 ====================
 platform:
@@ -121,3 +124,13 @@ platform:
     password-min-length: 8
     # 密码是否必须包含特殊字符
     password-require-special: false
+  # 短信厂商通过 platform-api 的 SmsSender SPI 接入；未配置实现时发送会记录失败日志并返回服务不可用
+  sms:
+    default-provider: ${SMS_DEFAULT_PROVIDER:}
+    code-ttl: 5m
+    send-interval: 60s
+    max-verify-attempts: 5
+    templates:
+      REGISTER: ${SMS_TEMPLATE_REGISTER:}
+      LOGIN: ${SMS_TEMPLATE_LOGIN:}
+      RESET_PASSWORD: ${SMS_TEMPLATE_RESET_PASSWORD:}

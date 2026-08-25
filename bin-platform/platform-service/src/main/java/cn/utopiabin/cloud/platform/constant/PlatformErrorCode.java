@@ -27,6 +27,8 @@ public enum PlatformErrorCode {
     PASSWORD_WRONG(1006, "原密码错误"),
     ACCOUNT_LOCKED(1007, "失败次数过多，账号已锁定，请稍后再试"),
     PASSWORD_WEAK(1008, "密码强度不足，需包含大小写字母、数字，至少8位"),
+    PHONE_DUPLICATE(1009, "手机号已注册"),
+    PHONE_NOT_REGISTERED(1010, "手机号未注册"),
     CANNOT_OPERATE_SELF(1011, "不能对当前登录账号执行此操作"),
     BUILT_IN_PROTECTED(1012, "内置数据不允许此操作"),
 
@@ -49,6 +51,11 @@ public enum PlatformErrorCode {
     TENANT_CODE_DUPLICATE(1302, "租户编码已存在"),
     TENANT_DISABLED(1303, "所属租户已被禁用，请联系管理员"),
     TENANT_EXPIRED(1304, "所属租户已过期，请联系管理员"),
+
+    SMS_CODE_ERROR(1351, "短信验证码错误或已过期"),
+    SMS_SEND_TOO_FREQUENT(1352, "短信发送过于频繁，请稍后再试"),
+    SMS_PROVIDER_UNAVAILABLE(1353, "短信服务暂不可用"),
+    SMS_SEND_FAILED(1354, "短信发送失败"),
 
     DICT_NOT_FOUND(1401, "字典不存在"),
     DICT_DUPLICATE(1402, "字典名称或编码已存在"),

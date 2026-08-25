@@ -1,6 +1,8 @@
 package cn.utopiabin.cloud.gateway.filter;
 
 import cn.utopiabin.cloud.common.constant.CommonConstants;
+import cn.utopiabin.cloud.common.context.GatewayContextProperties;
+import cn.utopiabin.cloud.common.context.GatewayContextSigner;
 import cn.utopiabin.cloud.common.rest.RestResult;
 import cn.utopiabin.cloud.common.utils.JsonUtil;
 import cn.utopiabin.cloud.common.utils.StrUtil;
@@ -43,29 +45,32 @@ import java.util.List;
 public class JwtAuthFilter implements GlobalFilter, Ordered {
 
     private final GatewayConfig gatewayConfig;
+    private final GatewayContextProperties gatewayContextProperties;
     private final ReactiveRedisTemplate<String, String> reactiveRedisTemplate;
     private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        String path = exchange.getRequest().getURI().getPath();
+        // 所有入口先移除客户端可伪造的内部身份头，白名单请求也不能保留这些头。
+        ServerWebExchange sanitizedExchange = removeUntrustedIdentityHeaders(exchange);
+        String path = sanitizedExchange.getRequest().getURI().getPath();
 
         // 1. 白名单路径直接放行
         if (isWhitePath(path)) {
-            return chain.filter(exchange);
+            return chain.filter(sanitizedExchange);
         }
 
         // 2. 提取 Token
-        String token = extractToken(exchange.getRequest());
+        String token = extractToken(sanitizedExchange.getRequest());
         if (token == null) {
-            return unauthorized(exchange, "缺少有效的认证 Token");
+            return unauthorized(sanitizedExchange, "缺少有效的认证 Token");
         }
 
         // 3. 检查 Token 黑名单 (Redis)
         return checkTokenBlacklist(token)
                 .flatMap(isBlacklisted -> {
                     if (isBlacklisted) {
-                        return unauthorized(exchange, "Token 已被注销, 请重新登录");
+                        return unauthorized(sanitizedExchange, "Token 已被注销, 请重新登录");
                     }
 
                     // 4. 解析并校验 Token (含租户身份校验) —— 异步执行, 避免签名验签阻塞事件循环
@@ -73,38 +78,51 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
                             .subscribeOn(Schedulers.boundedElastic())
                             .flatMap(payload -> {
                                 if (payload == null) {
-                                    return unauthorized(exchange, "Token 无效或已过期");
+                                    return unauthorized(sanitizedExchange, "Token 无效或已过期");
                                 }
 
                                 // 5. 将用户信息注入请求头传递给下游
-                                //    安全: 先移除客户端可能伪造的身份头, 再注入网关验签后的真实值,
-                                //    避免 mutate().header() 追加导致伪造头与真实头并存
-                                ServerHttpRequest modifiedRequest = exchange.getRequest().mutate()
-                                        .headers(h -> {
-                                            h.remove(CommonConstants.HEADER_USER_ID);
-                                            h.remove(CommonConstants.HEADER_USER_NAME);
-                                            h.remove(CommonConstants.HEADER_TENANT_ID);
-                                            h.remove(CommonConstants.HEADER_USER_ROLES);
-                                            h.remove(CommonConstants.HEADER_TOKEN);
-                                        })
+                                String roles = payload.getRoles() != null
+                                        ? String.join(",", payload.getRoles()) : "";
+                                long timestamp = System.currentTimeMillis();
+                                String signature = GatewayContextSigner.sign(
+                                        gatewayContextProperties.getSigningSecret(), timestamp,
+                                        payload.getUserId(), payload.getUsername(), payload.getTenantId(), roles);
+                                ServerHttpRequest modifiedRequest = sanitizedExchange.getRequest().mutate()
                                         .header(CommonConstants.HEADER_USER_ID, payload.getUserId())
                                         .header(CommonConstants.HEADER_USER_NAME, payload.getUsername())
                                         .header(CommonConstants.HEADER_TENANT_ID, payload.getTenantId())
-                                        .header(CommonConstants.HEADER_USER_ROLES,
-                                                payload.getRoles() != null ? String.join(",", payload.getRoles()) : "")
+                                        .header(CommonConstants.HEADER_USER_ROLES, roles)
                                         .header(CommonConstants.HEADER_TOKEN, token)
+                                        .header(CommonConstants.HEADER_GATEWAY_TIMESTAMP, String.valueOf(timestamp))
+                                        .header(CommonConstants.HEADER_GATEWAY_SIGNATURE, signature)
                                         .build();
 
                                 log.debug("JWT 鉴权通过: userId={}, tenantId={}, path={}",
                                         payload.getUserId(), payload.getTenantId(), path);
-                                return chain.filter(exchange.mutate().request(modifiedRequest).build());
+                                return chain.filter(sanitizedExchange.mutate().request(modifiedRequest).build());
                             })
                             // 捕获 JWT 解析过程中的任何异常, 统一返回 401 而非 500
                             .onErrorResume(e -> {
                                 log.warn("JWT 解析异常: {}", e.getMessage());
-                                return unauthorized(exchange, "Token 无效或已过期");
+                                return unauthorized(sanitizedExchange, "Token 无效、已过期或网关上下文签名未配置");
                             });
                 });
+    }
+
+    private ServerWebExchange removeUntrustedIdentityHeaders(ServerWebExchange exchange) {
+        ServerHttpRequest request = exchange.getRequest().mutate()
+                .headers(headers -> {
+                    headers.remove(CommonConstants.HEADER_USER_ID);
+                    headers.remove(CommonConstants.HEADER_USER_NAME);
+                    headers.remove(CommonConstants.HEADER_TENANT_ID);
+                    headers.remove(CommonConstants.HEADER_USER_ROLES);
+                    headers.remove(CommonConstants.HEADER_TOKEN);
+                    headers.remove(CommonConstants.HEADER_GATEWAY_TIMESTAMP);
+                    headers.remove(CommonConstants.HEADER_GATEWAY_SIGNATURE);
+                })
+                .build();
+        return exchange.mutate().request(request).build();
     }
 
     /**

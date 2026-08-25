@@ -8,13 +8,19 @@ import cn.utopiabin.cloud.common.utils.StrUtil;
 import cn.utopiabin.cloud.platform.annotation.OperateLog;
 import cn.utopiabin.cloud.platform.annotation.OperateType;
 import cn.utopiabin.cloud.common.annotations.RepeatSubmit;
+import cn.utopiabin.cloud.common.annotations.DistributedLock;
 import cn.utopiabin.cloud.platform.annotation.TenantIgnore;
 import cn.utopiabin.cloud.platform.config.JwtTokenProperties;
 import cn.utopiabin.cloud.platform.config.LoginSecurityProperties;
 import cn.utopiabin.cloud.platform.constant.PlatformErrorCode;
 import cn.utopiabin.cloud.platform.entity.tenant.Tenant;
+import cn.utopiabin.cloud.platform.entity.iam.SysUser;
 import cn.utopiabin.cloud.platform.model.dto.auth.ChangePasswordDTO;
 import cn.utopiabin.cloud.platform.model.dto.auth.LoginDTO;
+import cn.utopiabin.cloud.platform.model.dto.auth.PhoneLoginDTO;
+import cn.utopiabin.cloud.platform.model.dto.auth.PhoneRegisterDTO;
+import cn.utopiabin.cloud.platform.model.dto.auth.PhoneResetPasswordDTO;
+import cn.utopiabin.cloud.platform.model.enums.SmsScene;
 import cn.utopiabin.cloud.platform.model.vo.auth.CurrentUserVO;
 import cn.utopiabin.cloud.platform.model.vo.auth.LoginResultVO;
 import cn.utopiabin.cloud.platform.model.vo.iam.SysMenuTreeVO;
@@ -29,6 +35,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -73,6 +80,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final LoginSecurityProperties loginSecurityProperties;
     private final PasswordValidator passwordValidator;
+    private final SmsService smsService;
 
     // ==================== 登录 ====================
 
@@ -131,28 +139,91 @@ public class AuthService {
         // 5. 登录成功，清除失败记录
         clearLoginFailure(loginIdentity);
 
-        // 获取缓存的用户权限 (缓存命中时 0 次 DB 查询)
-        var perm = permissionService.getUserPermissions(user.getId());
-        var roleCodes = perm.getRoles().stream()
-                .map(SysRoleVO::getCode)
-                .toList();
-
-        // 签发 JWT Token
-        String token = jwtTokenService.generate(
-                String.valueOf(user.getId()),
-                user.getUsername(),
-                String.valueOf(user.getTenantId()),
-                roleCodes);
-
-        // 组装返回结果
-        var result = new LoginResultVO();
-        result.setToken(token);
-        result.setUser(user.copyTo(SysUserVO.class));
-        result.setRoles(perm.getRoles());
-        result.setMenus(perm.getMenuTree());
-
+        LoginResultVO result = issueLoginResult(user);
         log.info("用户登录成功: username={}, userId={}", username, user.getId());
         return result;
+    }
+
+    /** 手机号注册；手机号同时作为初始用户名，注册后直接签发登录令牌。 */
+    @TenantIgnore
+    @Transactional
+    @DistributedLock(key = "'phone:register:' + #dto.tenantCode + ':' + #dto.phone")
+    @RepeatSubmit(interval = 2, message = "注册请求过于频繁，请稍后再试")
+    @OperateLog(module = "认证管理", action = "手机号注册", type = OperateType.AUTH, maskParams = true)
+    public LoginResultVO registerByPhone(PhoneRegisterDTO dto) {
+        String phone = trim(dto.getPhone());
+        Tenant tenant = tenantRepository.getByCode(trim(dto.getTenantCode()));
+        validateTenant(tenant);
+        if (userRepository.getByTenantIdAndPhone(tenant.getId(), phone) != null) {
+            throw biz(PlatformErrorCode.PHONE_DUPLICATE);
+        }
+        if (userRepository.getByTenantIdAndUsername(tenant.getId(), phone) != null) {
+            throw biz(PlatformErrorCode.USER_DUPLICATE);
+        }
+
+        passwordValidator.validate(dto.getPassword());
+        smsService.verifyAndConsume(tenant.getId(), phone, SmsScene.REGISTER, dto.getCode());
+
+        SysUser user = new SysUser();
+        user.setTenantId(tenant.getId());
+        user.setUsername(phone);
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        user.setRealName("");
+        user.setPhone(phone);
+        user.setEmail("");
+        user.setGender(0);
+        user.setAvailable(true);
+        user.setSort(10);
+        user.setComment("");
+        userRepository.save(user);
+
+        log.info("手机号注册成功: tenantId={}, userId={}", tenant.getId(), user.getId());
+        return issueLoginResult(user);
+    }
+
+    /** 短信验证码登录。 */
+    @TenantIgnore
+    @RepeatSubmit(interval = 2, message = "登录请求过于频繁，请稍后再试")
+    @OperateLog(module = "认证管理", action = "手机号登录", type = OperateType.AUTH, maskParams = true)
+    public LoginResultVO loginByPhone(PhoneLoginDTO dto) {
+        String phone = trim(dto.getPhone());
+        Tenant tenant = tenantRepository.getByCode(trim(dto.getTenantCode()));
+        validateTenant(tenant);
+        SysUser user = userRepository.getByTenantIdAndPhone(tenant.getId(), phone);
+        if (user == null) {
+            throw biz(PlatformErrorCode.PHONE_NOT_REGISTERED);
+        }
+        if (!Boolean.TRUE.equals(user.getAvailable())) {
+            throw biz(PlatformErrorCode.USER_DISABLED);
+        }
+
+        smsService.verifyAndConsume(tenant.getId(), phone, SmsScene.LOGIN, dto.getCode());
+        log.info("手机号登录成功: tenantId={}, userId={}", tenant.getId(), user.getId());
+        return issueLoginResult(user);
+    }
+
+    /** 使用短信验证码重置密码。 */
+    @TenantIgnore
+    @Transactional
+    @RepeatSubmit(interval = 2, message = "重置密码请求过于频繁，请稍后再试")
+    @OperateLog(module = "认证管理", action = "手机号重置密码", type = OperateType.AUTH, maskParams = true)
+    public void resetPasswordByPhone(PhoneResetPasswordDTO dto) {
+        String phone = trim(dto.getPhone());
+        Tenant tenant = tenantRepository.getByCode(trim(dto.getTenantCode()));
+        validateTenant(tenant);
+        SysUser user = userRepository.getByTenantIdAndPhone(tenant.getId(), phone);
+        if (user == null) {
+            throw biz(PlatformErrorCode.PHONE_NOT_REGISTERED);
+        }
+        if (!Boolean.TRUE.equals(user.getAvailable())) {
+            throw biz(PlatformErrorCode.USER_DISABLED);
+        }
+
+        passwordValidator.validate(dto.getNewPassword());
+        smsService.verifyAndConsume(tenant.getId(), phone, SmsScene.RESET_PASSWORD, dto.getCode());
+        user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+        userRepository.updateById(user);
+        log.info("手机号重置密码成功: tenantId={}, userId={}", tenant.getId(), user.getId());
     }
 
     // ==================== 登出 ====================
@@ -324,6 +395,33 @@ public class AuthService {
             throw new BizException(PlatformErrorCode.TENANT_EXPIRED.getCode(),
                     PlatformErrorCode.TENANT_EXPIRED.getMsg());
         }
+    }
+
+    private LoginResultVO issueLoginResult(SysUser user) {
+        var perm = permissionService.getUserPermissions(user.getId());
+        var roleCodes = perm.getRoles().stream()
+                .map(SysRoleVO::getCode)
+                .toList();
+        String token = jwtTokenService.generate(
+                String.valueOf(user.getId()),
+                user.getUsername(),
+                String.valueOf(user.getTenantId()),
+                roleCodes);
+
+        var result = new LoginResultVO();
+        result.setToken(token);
+        result.setUser(user.copyTo(SysUserVO.class));
+        result.setRoles(perm.getRoles());
+        result.setMenus(perm.getMenuTree());
+        return result;
+    }
+
+    private static String trim(String value) {
+        return value == null ? "" : value.trim();
+    }
+
+    private static BizException biz(PlatformErrorCode error) {
+        return new BizException(error.getCode(), error.getMsg());
     }
 
     /**

@@ -33,6 +33,12 @@ public class SysUserRepository extends BaseRepository<SysUserMapper, SysUser> {
                 .eq(SysUser::getUsername, username));
     }
 
+    public SysUser getByTenantIdAndPhone(Long tenantId, String phone) {
+        return getOne(new LambdaQueryWrapper<SysUser>()
+                .eq(SysUser::getTenantId, tenantId)
+                .eq(SysUser::getPhone, phone));
+    }
+
     /**
      * 分页查询
      */

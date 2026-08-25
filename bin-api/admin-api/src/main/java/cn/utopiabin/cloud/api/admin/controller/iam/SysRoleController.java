@@ -12,6 +12,7 @@ import cn.utopiabin.cloud.platform.model.dto.iam.SysRoleUpdateDTO;
 import cn.utopiabin.cloud.platform.model.vo.iam.SysPermissionVO;
 import cn.utopiabin.cloud.platform.model.vo.iam.SysRoleVO;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -117,8 +118,15 @@ public class SysRoleController {
         return RestResult.ok(roleApi.existsByCode(code));
     }
 
+    @Schema(description = "角色全量分配权限参数")
     public record AssignPermissionsRequest(
-            @NotNull(message = "权限ID列表不能为空") List<Long> permissionIds,
-            @NotNull(message = "角色版本号不能为空") Integer expectedVersion) {
+            @NotNull(message = "权限ID列表不能为空")
+            @Schema(description = "替换后的权限 ID 列表；空列表表示清除角色的全部权限", example = "[1, 2]",
+                    requiredMode = Schema.RequiredMode.REQUIRED)
+            List<Long> permissionIds,
+            @NotNull(message = "角色版本号不能为空")
+            @Schema(description = "客户端读取到的角色版本号，用于乐观并发控制", example = "1",
+                    requiredMode = Schema.RequiredMode.REQUIRED)
+            Integer expectedVersion) {
     }
 }

@@ -1,6 +1,7 @@
 package cn.utopiabin.cloud.common.model.dto;
 
 import cn.utopiabin.cloud.common.json.JsonSerializable;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -17,8 +18,10 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "批量资源 ID 请求参数")
 public class IdsDTO extends JsonSerializable {
 
+    @Schema(description = "目标资源 ID 列表", example = "[1, 2]", requiredMode = Schema.RequiredMode.REQUIRED)
     private List<Long> ids;
 
     public List<Long> safeIds() {

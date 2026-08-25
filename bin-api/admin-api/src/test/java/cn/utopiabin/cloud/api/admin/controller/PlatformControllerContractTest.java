@@ -8,6 +8,7 @@ import cn.utopiabin.cloud.api.admin.controller.iam.SysUserController;
 import cn.utopiabin.cloud.api.admin.controller.system.SysDictController;
 import cn.utopiabin.cloud.api.admin.controller.system.SysOperateLogController;
 import cn.utopiabin.cloud.api.admin.controller.system.SysParameterController;
+import cn.utopiabin.cloud.api.admin.controller.sms.SmsController;
 import cn.utopiabin.cloud.api.admin.controller.tenant.TenantController;
 import cn.utopiabin.cloud.platform.api.auth.AuthApi;
 import cn.utopiabin.cloud.platform.api.iam.SysMenuApi;
@@ -17,6 +18,7 @@ import cn.utopiabin.cloud.platform.api.iam.SysUserApi;
 import cn.utopiabin.cloud.platform.api.system.SysDictApi;
 import cn.utopiabin.cloud.platform.api.system.SysOperateLogApi;
 import cn.utopiabin.cloud.platform.api.system.SysParameterApi;
+import cn.utopiabin.cloud.platform.api.sms.SmsApi;
 import cn.utopiabin.cloud.platform.api.tenant.TenantApi;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.annotation.AnnotatedElementUtils;
@@ -43,7 +45,8 @@ class PlatformControllerContractTest {
             SysPermissionApi.class, SysPermissionController.class,
             SysDictApi.class, SysDictController.class,
             SysParameterApi.class, SysParameterController.class,
-            SysOperateLogApi.class, SysOperateLogController.class
+            SysOperateLogApi.class, SysOperateLogController.class,
+            SmsApi.class, SmsController.class
     );
 
     @Test

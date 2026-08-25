@@ -20,7 +20,11 @@ public final class GatewayConstants {
 
     /** 无需鉴权的路径集合 */
     public static final Set<String> WHITE_PATHS = Set.of(
-            "/auth/**",
+            "/auth/login",
+            "/auth/phone/register",
+            "/auth/phone/login",
+            "/auth/phone/password",
+            "/sms/code",
             "/public/**",
             "/swagger-ui/**",
             "/swagger-ui.html",

@@ -35,3 +35,10 @@
 - Elasticsearch 8.x
 - Milvus 2.6+（使用向量检索能力时需要）
 - Nacos 2.x
+
+### 安全配置
+
+启动 `bin-gateway`、`admin-api`、`open-api` 和可能接收网关 HTTP 请求的服务前，必须为它们配置相同的
+`GATEWAY_CONTEXT_SIGNING_SECRET`。该值至少 32 字节，用于签名网关注入的用户上下文，不能提交到源码或公开配置中。
+
+除网关外的 HTTP 与 Dubbo 端口只应暴露在受控内网，不能直接对公网开放。

@@ -78,6 +78,12 @@ public class SysUserService {
             throw new BizException(PlatformErrorCode.USER_DUPLICATE.getCode(),
                     PlatformErrorCode.USER_DUPLICATE.getMsg());
         }
+        var phone = StrUtil.defaultIfBlank(dto.getPhone(), "").trim();
+        if (StrUtil.isNotBlank(phone)
+                && userRepository.countByField(SysUser::getPhone, phone, null) > 0) {
+            throw new BizException(PlatformErrorCode.PHONE_DUPLICATE.getCode(),
+                    PlatformErrorCode.PHONE_DUPLICATE.getMsg());
+        }
 
         // 密码强度校验
         passwordValidator.validate(dto.getPassword());
@@ -89,7 +95,7 @@ public class SysUserService {
         user.setAvailable(Optional.ofNullable(dto.getAvailable()).orElse(true));
         user.setGender(Optional.ofNullable(dto.getGender()).orElse(0));
         user.setRealName(StrUtil.defaultIfBlank(dto.getRealName(), ""));
-        user.setPhone(StrUtil.defaultIfBlank(dto.getPhone(), ""));
+        user.setPhone(phone);
         user.setEmail(StrUtil.defaultIfBlank(dto.getEmail(), ""));
         user.setComment(StrUtil.defaultIfBlank(dto.getComment(), ""));
         userRepository.save(user);
@@ -114,6 +120,12 @@ public class SysUserService {
             throw new BizException(PlatformErrorCode.USER_DUPLICATE.getCode(),
                     PlatformErrorCode.USER_DUPLICATE.getMsg());
         }
+        var phone = StrUtil.defaultIfBlank(dto.getPhone(), "").trim();
+        if (StrUtil.isNotBlank(phone)
+                && userRepository.countByField(SysUser::getPhone, phone, dto.getId()) > 0) {
+            throw new BizException(PlatformErrorCode.PHONE_DUPLICATE.getCode(),
+                    PlatformErrorCode.PHONE_DUPLICATE.getMsg());
+        }
 
         // 内置管理员保护: 不允许改名 (改名会使内置保护失效)
         if (isBuiltInAdmin(user) && !user.getUsername().equals(username)) {
@@ -136,7 +148,7 @@ public class SysUserService {
 
         user.setUsername(username);
         user.setRealName(StrUtil.defaultIfBlank(dto.getRealName(), ""));
-        user.setPhone(StrUtil.defaultIfBlank(dto.getPhone(), ""));
+        user.setPhone(phone);
         user.setEmail(StrUtil.defaultIfBlank(dto.getEmail(), ""));
         user.setGender(Optional.ofNullable(dto.getGender()).orElse(user.getGender()));
         user.setSort(Optional.ofNullable(dto.getSort()).orElse(user.getSort()));

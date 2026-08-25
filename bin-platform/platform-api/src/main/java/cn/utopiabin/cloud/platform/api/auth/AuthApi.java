@@ -2,6 +2,9 @@ package cn.utopiabin.cloud.platform.api.auth;
 
 import cn.utopiabin.cloud.platform.model.dto.auth.ChangePasswordDTO;
 import cn.utopiabin.cloud.platform.model.dto.auth.LoginDTO;
+import cn.utopiabin.cloud.platform.model.dto.auth.PhoneLoginDTO;
+import cn.utopiabin.cloud.platform.model.dto.auth.PhoneRegisterDTO;
+import cn.utopiabin.cloud.platform.model.dto.auth.PhoneResetPasswordDTO;
 import cn.utopiabin.cloud.platform.model.vo.auth.CurrentUserVO;
 import cn.utopiabin.cloud.platform.model.vo.auth.LoginResultVO;
 import cn.utopiabin.cloud.platform.model.vo.iam.SysMenuTreeVO;
@@ -31,6 +34,15 @@ public interface AuthApi {
 
     @Operation(summary = "账号密码登录", description = "验证租户编码、用户名和密码，签发JWT Token，返回用户信息、角色及菜单树")
     LoginResultVO login(@Parameter(description = "登录参数", required = true) LoginDTO dto);
+
+    @Operation(summary = "手机号注册", description = "校验注册验证码并创建用户，注册成功后签发JWT Token")
+    LoginResultVO registerByPhone(PhoneRegisterDTO dto);
+
+    @Operation(summary = "手机号验证码登录", description = "校验登录验证码并签发JWT Token")
+    LoginResultVO loginByPhone(PhoneLoginDTO dto);
+
+    @Operation(summary = "手机号重置密码", description = "校验重置密码验证码后更新密码")
+    void resetPasswordByPhone(PhoneResetPasswordDTO dto);
 
     @Operation(summary = "退出登录", description = "将Token加入Redis黑名单，gateway将拦截已注销的Token")
     void logout(@Parameter(description = "原始JWT Token（由HTTP Controller从请求头提取传入）") String token);

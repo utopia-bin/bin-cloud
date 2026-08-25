@@ -5,7 +5,11 @@ import cn.utopiabin.cloud.common.redis.RedisClient;
 import cn.utopiabin.cloud.platform.config.JwtTokenProperties;
 import cn.utopiabin.cloud.platform.config.LoginSecurityProperties;
 import cn.utopiabin.cloud.platform.entity.tenant.Tenant;
+import cn.utopiabin.cloud.platform.entity.iam.SysUser;
 import cn.utopiabin.cloud.platform.model.dto.auth.LoginDTO;
+import cn.utopiabin.cloud.platform.model.dto.auth.PhoneRegisterDTO;
+import cn.utopiabin.cloud.platform.model.enums.SmsScene;
+import cn.utopiabin.cloud.platform.model.vo.iam.UserPermissionVO;
 import cn.utopiabin.cloud.platform.repository.iam.SysUserRepository;
 import cn.utopiabin.cloud.platform.repository.tenant.TenantRepository;
 import cn.utopiabin.cloud.platform.util.JwtTokenService;
@@ -18,6 +22,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -42,6 +49,8 @@ class AuthServiceTest {
     private LoginSecurityProperties loginSecurityProperties;
     @Mock
     private PasswordValidator passwordValidator;
+    @Mock
+    private SmsService smsService;
 
     @InjectMocks
     private AuthService authService;
@@ -66,5 +75,35 @@ class AuthServiceTest {
         verify(userRepository).getByTenantIdAndUsername(7L, "admin");
         verify(redisClient).hasKey("platform:login:lock:7:admin");
         verify(redisClient).expire("platform:login:fail:7:admin", java.time.Duration.ofSeconds(1800));
+    }
+
+    @Test
+    void registerByPhoneConsumesRegisterCodeAndCreatesTenantUser() {
+        var dto = new PhoneRegisterDTO();
+        dto.setTenantCode("tenant-a");
+        dto.setPhone("13800138000");
+        dto.setCode("123456");
+        dto.setPassword("Strong123");
+
+        var tenant = new Tenant();
+        tenant.setId(7L);
+        tenant.setAvailable(true);
+        when(tenantRepository.getByCode("tenant-a")).thenReturn(tenant);
+        when(passwordEncoder.encode("Strong123")).thenReturn("encoded");
+        doAnswer(invocation -> {
+            invocation.<SysUser>getArgument(0).setId(10L);
+            return true;
+        }).when(userRepository).save(any(SysUser.class));
+        when(permissionService.getUserPermissions(10L)).thenReturn(
+                new UserPermissionVO(java.util.List.of(), java.util.List.of(), java.util.List.of(),
+                        java.util.List.of(), java.util.List.of(), java.util.List.of()));
+        when(jwtTokenService.generate("10", "13800138000", "7", java.util.List.of()))
+                .thenReturn("token");
+
+        var result = authService.registerByPhone(dto);
+
+        assertEquals("token", result.getToken());
+        verify(smsService).verifyAndConsume(7L, "13800138000", SmsScene.REGISTER, "123456");
+        verify(passwordValidator).validate("Strong123");
     }
 }

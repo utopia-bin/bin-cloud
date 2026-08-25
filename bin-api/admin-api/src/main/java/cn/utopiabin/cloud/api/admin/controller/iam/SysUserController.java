@@ -12,6 +12,7 @@ import cn.utopiabin.cloud.platform.model.dto.iam.SysUserUpdateDTO;
 import cn.utopiabin.cloud.platform.model.vo.iam.SysRoleVO;
 import cn.utopiabin.cloud.platform.model.vo.iam.SysUserVO;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -127,14 +128,24 @@ public class SysUserController {
         return RestResult.ok();
     }
 
+    @Schema(description = "管理员重置用户密码参数")
     public record ResetPasswordRequest(
             @NotBlank(message = "新密码不能为空")
             @Size(min = 8, max = 64, message = "新密码长度必须在8到64个字符之间")
+            @Schema(description = "用户的新登录密码，长度为 8 至 64 个字符", example = "NewPassword123!",
+                    requiredMode = Schema.RequiredMode.REQUIRED)
             String newPassword) {
     }
 
+    @Schema(description = "用户全量分配角色参数")
     public record AssignRolesRequest(
-            @NotNull(message = "角色ID列表不能为空") List<Long> roleIds,
-            @NotNull(message = "用户版本号不能为空") Integer expectedVersion) {
+            @NotNull(message = "角色ID列表不能为空")
+            @Schema(description = "替换后的角色 ID 列表；空列表表示清除用户的全部角色", example = "[1, 2]",
+                    requiredMode = Schema.RequiredMode.REQUIRED)
+            List<Long> roleIds,
+            @NotNull(message = "用户版本号不能为空")
+            @Schema(description = "客户端读取到的用户版本号，用于乐观并发控制", example = "1",
+                    requiredMode = Schema.RequiredMode.REQUIRED)
+            Integer expectedVersion) {
     }
 }

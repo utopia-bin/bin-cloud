@@ -18,4 +18,15 @@ class PlatformBaselineMigrationTest {
             assertTrue(migration.contains("platform:operate-log:read"));
         }
     }
+
+    @Test
+    void phoneAuthMigrationContainsUniquePhoneAndSmsLog() throws IOException {
+        try (var input = getClass().getResourceAsStream("/db/migration/V2__phone_auth_and_sms.sql")) {
+            assertTrue(input != null, "phone auth migration must exist");
+            String migration = new String(input.readAllBytes(), StandardCharsets.UTF_8);
+            assertTrue(migration.contains("uk_user_tenant_phone"));
+            assertTrue(migration.contains("CREATE TABLE IF NOT EXISTS sys_sms_send_log"));
+            assertTrue(migration.contains("idx_sms_log_tenant_phone_time"));
+        }
+    }
 }

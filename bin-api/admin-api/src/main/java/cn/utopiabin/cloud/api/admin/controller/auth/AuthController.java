@@ -4,6 +4,9 @@ import cn.utopiabin.cloud.common.rest.RestResult;
 import cn.utopiabin.cloud.platform.api.auth.AuthApi;
 import cn.utopiabin.cloud.platform.model.dto.auth.ChangePasswordDTO;
 import cn.utopiabin.cloud.platform.model.dto.auth.LoginDTO;
+import cn.utopiabin.cloud.platform.model.dto.auth.PhoneLoginDTO;
+import cn.utopiabin.cloud.platform.model.dto.auth.PhoneRegisterDTO;
+import cn.utopiabin.cloud.platform.model.dto.auth.PhoneResetPasswordDTO;
 import cn.utopiabin.cloud.platform.model.vo.auth.CurrentUserVO;
 import cn.utopiabin.cloud.platform.model.vo.auth.LoginResultVO;
 import cn.utopiabin.cloud.platform.model.vo.iam.SysMenuTreeVO;
@@ -35,6 +38,25 @@ public class AuthController {
     @PostMapping("/login")
     public RestResult<LoginResultVO> login(@Valid @RequestBody LoginDTO dto) {
         return RestResult.ok(authApi.login(dto));
+    }
+
+    @Operation(summary = "手机号注册")
+    @PostMapping("/phone/register")
+    public RestResult<LoginResultVO> registerByPhone(@Valid @RequestBody PhoneRegisterDTO dto) {
+        return RestResult.ok(authApi.registerByPhone(dto));
+    }
+
+    @Operation(summary = "手机号验证码登录")
+    @PostMapping("/phone/login")
+    public RestResult<LoginResultVO> loginByPhone(@Valid @RequestBody PhoneLoginDTO dto) {
+        return RestResult.ok(authApi.loginByPhone(dto));
+    }
+
+    @Operation(summary = "手机号重置密码")
+    @PutMapping("/phone/password")
+    public RestResult<Void> resetPasswordByPhone(@Valid @RequestBody PhoneResetPasswordDTO dto) {
+        authApi.resetPasswordByPhone(dto);
+        return RestResult.ok();
     }
 
     @Operation(summary = "退出登录")

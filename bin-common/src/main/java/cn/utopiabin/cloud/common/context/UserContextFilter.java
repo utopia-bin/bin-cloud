@@ -6,6 +6,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -29,9 +30,12 @@ import java.io.IOException;
  * @since 1.0.0
  */
 @Slf4j
+@RequiredArgsConstructor
 @Order(Ordered.HIGHEST_PRECEDENCE + 10)
 @SuppressWarnings("NullableProblems")
 public class UserContextFilter extends OncePerRequestFilter {
+
+    private final GatewayContextProperties properties;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -40,11 +44,25 @@ public class UserContextFilter extends OncePerRequestFilter {
         try {
             String userId = request.getHeader(CommonConstants.HEADER_USER_ID);
             if (StrUtil.isNotBlank(userId)) {
+                String username = request.getHeader(CommonConstants.HEADER_USER_NAME);
+                String tenantId = request.getHeader(CommonConstants.HEADER_TENANT_ID);
+                String roles = request.getHeader(CommonConstants.HEADER_USER_ROLES);
+                boolean trusted = GatewayContextSigner.verify(
+                        properties.getSigningSecret(),
+                        request.getHeader(CommonConstants.HEADER_GATEWAY_TIMESTAMP),
+                        request.getHeader(CommonConstants.HEADER_GATEWAY_SIGNATURE),
+                        userId, username, tenantId, roles,
+                        properties.getSignatureMaxAge());
+                if (!trusted) {
+                    log.warn("拒绝未通过网关签名校验的用户上下文: path={}", request.getRequestURI());
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid gateway user context");
+                    return;
+                }
                 UserContext context = UserContext.of(
                         userId,
-                        request.getHeader(CommonConstants.HEADER_USER_NAME),
-                        request.getHeader(CommonConstants.HEADER_TENANT_ID),
-                        request.getHeader(CommonConstants.HEADER_USER_ROLES)
+                        username,
+                        tenantId,
+                        roles
                 );
                 UserContextHolder.set(context);
                 log.debug("用户上下文已设置: userId={}, tenantId={}, path={}",

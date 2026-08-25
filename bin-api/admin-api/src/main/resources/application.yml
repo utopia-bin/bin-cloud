@@ -44,3 +44,9 @@ dubbo:
     check: false
     timeout: 5000
     retries: 0
+
+# 仅接受网关签名后的用户身份头。该密钥必须与 bin-gateway 一致。
+gateway:
+  context:
+    signing-secret: ${GATEWAY_CONTEXT_SIGNING_SECRET:${JWT_SECRET:}}
+    signature-max-age: 30s
