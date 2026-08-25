@@ -29,9 +29,10 @@ public final class GatewayConstants {
             "/swagger-ui/**",
             "/swagger-ui.html",
             "/v3/api-docs/**",
+            "/*/v3/api-docs/**",
             "/webjars/**",
             "/favicon.ico",
-            "/actuator/**"
+            "/actuator/health/**"
     );
 
     /** 不记录详细日志的健康检查路径 */

@@ -27,7 +27,11 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * JWT 鉴权全局过滤器 (租户感知)
@@ -136,9 +140,7 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
             return Mono.just(false);
         }
 
-        // 取 Token 的后 16 位作为黑名单 Key 的快速索引
-        String suffix = token.length() > 16 ? token.substring(token.length() - 16) : token;
-        String blacklistKey = GatewayConstants.TOKEN_BLACKLIST_PREFIX + suffix;
+        String blacklistKey = GatewayConstants.TOKEN_BLACKLIST_PREFIX + tokenDigest(token);
 
         return reactiveRedisTemplate.hasKey(blacklistKey)
                 .defaultIfEmpty(false)
@@ -146,6 +148,11 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
                     if (isBlacked) {
                         log.info("Token 命中黑名单: key={}", blacklistKey);
                     }
+                })
+                .onErrorResume(error -> {
+                    log.error("Token 黑名单服务不可用, failClosed={}",
+                            gatewayConfig.isTokenBlacklistFailClosed(), error);
+                    return Mono.just(gatewayConfig.isTokenBlacklistFailClosed());
                 });
     }
 
@@ -155,7 +162,8 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
     private boolean isWhitePath(String path) {
         List<String> whitePaths = gatewayConfig.getWhitePaths();
         if (whitePaths != null && !whitePaths.isEmpty()) {
-            return whitePaths.stream().anyMatch(p -> PATH_MATCHER.match(p, path));
+            return Stream.concat(GatewayConstants.WHITE_PATHS.stream(), whitePaths.stream())
+                    .anyMatch(p -> PATH_MATCHER.match(p, path));
         }
         return GatewayConstants.WHITE_PATHS.stream().anyMatch(p -> PATH_MATCHER.match(p, path));
     }
@@ -170,8 +178,22 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
         if (!StrUtil.isBlank(token)) {
             return token;
         }
-        // 备选: 从查询参数 token 提取
-        return request.getQueryParams().getFirst(CommonConstants.TOKEN_PARAM);
+        boolean websocketUpgrade = "websocket".equalsIgnoreCase(
+                request.getHeaders().getFirst(HttpHeaders.UPGRADE));
+        boolean allowedWebsocketPath = gatewayConfig.getWebsocketTokenPaths().stream()
+                .anyMatch(pattern -> PATH_MATCHER.match(pattern, request.getURI().getPath()));
+        return websocketUpgrade && allowedWebsocketPath
+                ? request.getQueryParams().getFirst(CommonConstants.TOKEN_PARAM) : null;
+    }
+
+    private String tokenDigest(String token) {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256")
+                    .digest(token.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(digest);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 is unavailable", e);
+        }
     }
 
     /**

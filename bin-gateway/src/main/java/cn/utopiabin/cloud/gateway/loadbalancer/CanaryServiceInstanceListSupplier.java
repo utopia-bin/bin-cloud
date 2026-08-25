@@ -4,6 +4,7 @@ import cn.utopiabin.cloud.common.constant.CommonConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.Request;
+import org.springframework.cloud.client.loadbalancer.RequestDataContext;
 import org.springframework.cloud.loadbalancer.core.DelegatingServiceInstanceListSupplier;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.http.HttpRequest;
@@ -33,8 +34,12 @@ public class CanaryServiceInstanceListSupplier extends DelegatingServiceInstance
     /** Nacos 实例元数据中的灰度标记 Key */
     private static final String META_CANARY = "canary";
 
-    public CanaryServiceInstanceListSupplier(ServiceInstanceListSupplier delegate) {
+    private final boolean canaryFallbackEnabled;
+
+    public CanaryServiceInstanceListSupplier(ServiceInstanceListSupplier delegate,
+                                              boolean canaryFallbackEnabled) {
         super(delegate);
+        this.canaryFallbackEnabled = canaryFallbackEnabled;
     }
 
     @Override
@@ -66,11 +71,20 @@ public class CanaryServiceInstanceListSupplier extends DelegatingServiceInstance
                 })
                 .toList();
 
-        // 降级: 无匹配实例时返回全部, 保证请求不因灰度配置缺失而失败
+        // 仅灰度请求允许按配置回退到稳定实例；稳定流量绝不进入灰度实例。
         if (filtered.isEmpty()) {
-            log.debug("灰度实例未匹配, 降级到全部实例: serviceId={}, isCanaryRequest={}",
+            if (isCanary && canaryFallbackEnabled) {
+                List<ServiceInstance> stableInstances = instances.stream()
+                        .filter(instance -> !"true".equalsIgnoreCase(
+                                instance.getMetadata().get(META_CANARY)))
+                        .toList();
+                log.warn("灰度实例不存在, 回退到稳定实例: serviceId={}, selected={}",
+                        getServiceId(), stableInstances.size());
+                return stableInstances;
+            }
+            log.warn("没有匹配版本的服务实例: serviceId={}, isCanaryRequest={}",
                     getServiceId(), isCanary);
-            return instances;
+            return List.of();
         }
 
         log.debug("灰度路由选择: serviceId={}, isCanary={}, total={}, selected={}",
@@ -86,6 +100,10 @@ public class CanaryServiceInstanceListSupplier extends DelegatingServiceInstance
             return false;
         }
         Object context = request.getContext();
+        if (context instanceof RequestDataContext requestDataContext) {
+            return "true".equalsIgnoreCase(requestDataContext.getClientRequest()
+                    .getHeaders().getFirst(CommonConstants.HEADER_CANARY));
+        }
         if (context instanceof HttpRequest httpRequest) {
             return "true".equalsIgnoreCase(
                     httpRequest.getHeaders().getFirst(CommonConstants.HEADER_CANARY));

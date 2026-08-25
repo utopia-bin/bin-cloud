@@ -17,7 +17,7 @@ spring:
       discovery:
         server-addr: 192.168.220.128:8848
         namespace: ${NACOS_NAMESPACE:bin-cloud}
-        group: Platform
+        group: ${NACOS_DISCOVERY_GROUP:DEFAULT_GROUP}
         username: ${NACOS_USERNAME:nacos}
         password: ${NACOS_PASSWORD:Beyond129814.}
       config:

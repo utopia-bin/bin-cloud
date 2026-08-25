@@ -11,6 +11,10 @@ import org.springframework.stereotype.Service;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.util.List;
 
 /**
@@ -96,10 +100,13 @@ public class JwtTokenService {
         }
     }
 
-    /**
-     * 对 Token 取后 16 位作为黑名单索引 (与 gateway JwtAuthFilter 保持一致)
-     */
-    public String blacklistSuffix(String token) {
-        return token.length() > 16 ? token.substring(token.length() - 16) : token;
+    /** 使用 Token 的 SHA-256 摘要作为黑名单索引，避免短后缀碰撞。 */
+    public String blacklistKeyDigest(String token) {
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
+                    .digest(token.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 is unavailable", e);
+        }
     }
 }

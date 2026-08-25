@@ -64,8 +64,10 @@ public final class JwtUtil {
             }
 
             // 租户 ID 校验: 多租户平台 Token 必须包含租户身份
-            if (StrUtil.isBlank(payload.getTenantId())) {
-                log.warn("JWT Token 缺少租户信息: userId={}", payload.getUserId());
+            if (StrUtil.isBlank(payload.getUserId()) || StrUtil.isBlank(payload.getUsername())
+                    || StrUtil.isBlank(payload.getTenantId())) {
+                log.warn("JWT Token 缺少必要身份信息: userId={}, tenantId={}",
+                        payload.getUserId(), payload.getTenantId());
                 return null;
             }
 
@@ -102,7 +104,9 @@ public final class JwtUtil {
         if (StrUtil.isBlank(authorization)) {
             return null;
         }
-        if (!authorization.startsWith(CommonConstants.BEARER_PREFIX)) {
+        if (authorization.length() < CommonConstants.BEARER_PREFIX_LENGTH
+                || !authorization.regionMatches(true, 0, CommonConstants.BEARER_PREFIX,
+                0, CommonConstants.BEARER_PREFIX_LENGTH)) {
             return null;
         }
         String token = authorization.substring(CommonConstants.BEARER_PREFIX_LENGTH).trim();

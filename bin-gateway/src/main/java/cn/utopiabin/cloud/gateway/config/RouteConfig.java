@@ -6,47 +6,35 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * 路由配置 —— 程序式定义灰度路由规则
+ * 网关基线业务路由。
  * <p>
- * 静态路由通过 application.yml 的 spring.cloud.gateway.routes 声明,
- * 本类定义显式灰度路由 (请求头 X-Canary=true 时优先匹配)。
- * <p>
- * 灰度实例选择由 {@link cn.utopiabin.cloud.gateway.loadbalancer.CanaryServiceInstanceListSupplier}
- * 在 LoadBalancer 层完成, 下游服务需在 Nacos 注册时设置元数据 {@code canary=true}。
+ * 灰度选择在 GlobalFilter 和 LoadBalancer 实例过滤阶段完成，因此路由谓词不直接
+ * 信任外部 {@code X-Canary} 请求头。Nacos 可继续提供额外路由，但三个核心服务在
+ * 配置中心暂时不可用时仍具有确定的基础路由。
  *
  * @since 1.0.0
  */
 @Configuration
 public class RouteConfig {
 
-    /**
-     * 灰度高优先级路由: 当请求头 X-Canary=true 时路由到金丝雀实例
-     */
     @Bean
-    public RouteLocator canaryRouteLocator(RouteLocatorBuilder builder) {
+    public RouteLocator businessRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
-                // admin-api 灰度路由
-                .route("admin-api-canary", r -> r
-                        .header("X-Canary", "true")
-                        .and()
-                        .path("/admin/**")
-                        .filters(f -> f
-                                .stripPrefix(1)
-                                .circuitBreaker(c -> c
-                                        .setName("adminApiCB")
+                .route("admin-api", route -> route.path("/admin/**")
+                        .filters(filters -> filters.stripPrefix(1)
+                                .circuitBreaker(config -> config.setName("adminApiCB")
                                         .setFallbackUri("forward:/fallback/admin")))
                         .uri("lb://admin-api"))
-                // platform-api 灰度路由
-                .route("platform-api-canary", r -> r
-                        .header("X-Canary", "true")
-                        .and()
-                        .path("/platform/**")
-                        .filters(f -> f
-                                .stripPrefix(1)
-                                .circuitBreaker(c -> c
-                                        .setName("platformApiCB")
+                .route("open-api", route -> route.path("/open/**")
+                        .filters(filters -> filters.stripPrefix(1)
+                                .circuitBreaker(config -> config.setName("openApiCB")
+                                        .setFallbackUri("forward:/fallback/open")))
+                        .uri("lb://open-api"))
+                .route("platform-service", route -> route.path("/platform/**")
+                        .filters(filters -> filters.stripPrefix(1)
+                                .circuitBreaker(config -> config.setName("platformApiCB")
                                         .setFallbackUri("forward:/fallback/platform")))
-                        .uri("lb://platform-api"))
+                        .uri("lb://platform-service"))
                 .build();
     }
 }

@@ -4,7 +4,6 @@ import cn.utopiabin.cloud.gateway.loadbalancer.CanaryServiceInstanceListSupplier
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 /**
  * 负载均衡配置
@@ -17,7 +16,6 @@ import org.springframework.context.annotation.Configuration;
  *
  * @since 1.0.0
  */
-@Configuration
 public class LoadBalancerConfig {
 
     /**
@@ -25,11 +23,11 @@ public class LoadBalancerConfig {
      */
     @Bean
     public ServiceInstanceListSupplier discoveryClientServiceInstanceListSupplier(
-            ConfigurableApplicationContext context) {
+            ConfigurableApplicationContext context, GatewayConfig gatewayConfig) {
         return new CanaryServiceInstanceListSupplier(
                 ServiceInstanceListSupplier.builder()
                         .withDiscoveryClient()
                         .withCaching()
-                        .build(context));
+                        .build(context), gatewayConfig.isCanaryFallbackEnabled());
     }
 }

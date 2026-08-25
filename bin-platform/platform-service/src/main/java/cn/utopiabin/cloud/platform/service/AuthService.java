@@ -254,7 +254,7 @@ public class AuthService {
         if (remainingTtl <= 0) {
             return;
         }
-        String key = TOKEN_BLACKLIST_PREFIX + jwtTokenService.blacklistSuffix(token);
+        String key = TOKEN_BLACKLIST_PREFIX + jwtTokenService.blacklistKeyDigest(token);
         redisClient.set(key, "1", Duration.ofSeconds(remainingTtl));
         log.info("Token 已加入黑名单: key={}, ttl={}s", key, remainingTtl);
     }

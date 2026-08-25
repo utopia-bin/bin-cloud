@@ -52,6 +52,23 @@ class JwtAuthFilterTest {
     }
 
     @Test
+    void prefixedOpenApiDocumentRequestDoesNotRequireToken() {
+        var filter = filter();
+        var exchange = MockServerWebExchange.from(
+                MockServerHttpRequest.get("/admin/v3/api-docs").build());
+        var invoked = new AtomicReference<Boolean>(false);
+        GatewayFilterChain chain = current -> {
+            invoked.set(true);
+            return Mono.empty();
+        };
+
+        filter.filter(exchange, chain).block(Duration.ofSeconds(2));
+
+        assertEquals(Boolean.TRUE, invoked.get());
+        assertNull(exchange.getResponse().getStatusCode());
+    }
+
+    @Test
     void authenticatedRequestCarriesVerifiableGatewayContext() {
         var filter = filter();
         String token = token();

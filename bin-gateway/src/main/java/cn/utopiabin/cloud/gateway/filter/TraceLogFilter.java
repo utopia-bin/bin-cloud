@@ -15,6 +15,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 /**
  * 全链路日志全局过滤器
@@ -32,6 +33,7 @@ public class TraceLogFilter implements GlobalFilter, Ordered {
 
     private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
     private static final String MDC_TRACE_ID = "traceId";
+    private static final Pattern VALID_TRACE_ID = Pattern.compile("[A-Za-z0-9_-]{8,64}");
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -39,7 +41,7 @@ public class TraceLogFilter implements GlobalFilter, Ordered {
 
         // 生成或复用 traceId
         String traceId = exchange.getRequest().getHeaders().getFirst(CommonConstants.HEADER_TRACE_ID);
-        if (StrUtil.isBlank(traceId)) {
+        if (StrUtil.isBlank(traceId) || !VALID_TRACE_ID.matcher(traceId).matches()) {
             traceId = UUID.randomUUID().toString().replace("-", "");
         }
         final String finalTraceId = traceId;
@@ -49,6 +51,7 @@ public class TraceLogFilter implements GlobalFilter, Ordered {
                 .header(CommonConstants.HEADER_TRACE_ID, finalTraceId)
                 .build();
         final ServerWebExchange finalExchange = exchange.mutate().request(request).build();
+        finalExchange.getResponse().getHeaders().set(CommonConstants.HEADER_TRACE_ID, finalTraceId);
 
         final String path = request.getURI().getPath();
         final String method = request.getMethod().name();

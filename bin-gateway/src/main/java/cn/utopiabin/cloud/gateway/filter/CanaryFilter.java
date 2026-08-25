@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.Objects;
 
 /**
  * 灰度金丝雀全局过滤器
@@ -41,11 +41,12 @@ public class CanaryFilter implements GlobalFilter, Ordered {
         String versionHeader = request.getHeaders().getFirst(CommonConstants.HEADER_VERSION);
 
         // 策略 1: 请求头显式指定金丝雀
-        boolean isCanaryRequest = isCanaryByHeader(canaryHeader, versionHeader);
+        boolean isCanaryRequest = gatewayConfig.isCanaryHeaderEnabled()
+                && isCanaryByHeader(canaryHeader, versionHeader);
 
         // 策略 2: 按比例灰度
         if (!isCanaryRequest && gatewayConfig.getCanaryRatio() > 0) {
-            isCanaryRequest = isCanaryByRatio();
+            isCanaryRequest = isCanaryByRatio(request);
         }
 
         if (isCanaryRequest) {
@@ -66,14 +67,23 @@ public class CanaryFilter implements GlobalFilter, Ordered {
      */
     private boolean isCanaryByHeader(String canaryHeader, String versionHeader) {
         return "true".equalsIgnoreCase(canaryHeader)
-                || (versionHeader != null && versionHeader.contains("canary"));
+                || (versionHeader != null && versionHeader.toLowerCase().contains("canary"));
     }
 
     /**
      * 按比例随机判断是否进入金丝雀通道
      */
-    private boolean isCanaryByRatio() {
-        return ThreadLocalRandom.current().nextDouble() < gatewayConfig.getCanaryRatio();
+    private boolean isCanaryByRatio(ServerHttpRequest request) {
+        String subject = request.getHeaders().getFirst(CommonConstants.HEADER_USER_ID);
+        if (subject == null || subject.isBlank()) {
+            subject = request.getHeaders().getFirst(CommonConstants.HEADER_TENANT_ID);
+        }
+        if (subject == null || subject.isBlank()) {
+            subject = request.getRemoteAddress() != null
+                    ? request.getRemoteAddress().getAddress().getHostAddress() : "anonymous";
+        }
+        int bucket = Math.floorMod(Objects.hash(subject), 10_000);
+        return bucket < gatewayConfig.getCanaryRatio() * 10_000;
     }
 
     @Override

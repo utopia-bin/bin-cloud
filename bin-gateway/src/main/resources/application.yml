@@ -1,33 +1,43 @@
-﻿server:
+server:
   port: 8000
 spring:
   application:
     name: bin-gateway
-  # 引入 Nacos 动态配置
   config:
     import:
       - optional:nacos:bin-gateway.yml
       - optional:nacos:bin-gateway-routes.yml
-  # Nacos 服务发现 + 配置中心
   cloud:
     nacos:
       discovery:
-        server-addr: 192.168.220.128:8848
+        server-addr: ${NACOS_SERVER_ADDR:127.0.0.1:8848}
         namespace: ${NACOS_NAMESPACE:bin-cloud}
-        group: Gateway
+        group: ${NACOS_DISCOVERY_GROUP:DEFAULT_GROUP}
         username: ${NACOS_USERNAME:nacos}
-        password: ${NACOS_PASSWORD:Beyond129814.}
+        password: ${NACOS_PASSWORD:}
       config:
-        server-addr: 192.168.220.128:8848
+        server-addr: ${NACOS_SERVER_ADDR:127.0.0.1:8848}
         namespace: ${NACOS_NAMESPACE:bin-cloud}
         group: Gateway
         file-extension: yml
         refresh-enabled: true
         username: ${NACOS_USERNAME:nacos}
-        password: ${NACOS_PASSWORD:Beyond129814.}
+        password: ${NACOS_PASSWORD:}
 
-# 网关与下游 API 的用户上下文签名配置。生产环境必须设置同一个密钥。
 gateway:
+  jwt-secret: ${JWT_SECRET:}
+  allowed-origin-patterns: ${GATEWAY_ALLOWED_ORIGINS:http://localhost:*,http://127.0.0.1:*}
   context:
     signing-secret: ${GATEWAY_CONTEXT_SIGNING_SECRET:${JWT_SECRET:}}
     signature-max-age: 30s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never

@@ -27,7 +27,7 @@ import java.util.List;
  * <p>
  * 双重限流策略:
  * <ol>
- *   <li>突发限流 (每秒 burst capacity): 防止瞬时流量洪峰</li>
+     *   <li>令牌桶限流 (replenish rate + burst capacity): 防止瞬时流量洪峰</li>
  *   <li>分钟限流 (每分钟 per-minute): 防止持续高频请求</li>
  * </ol>
  * <p>
@@ -46,24 +46,33 @@ public class RateLimitFilter implements GlobalFilter, Ordered {
     /**
      * 限流 Lua 脚本:
      * <pre>
-     * KEYS[1] = 突发限流 Key (每秒窗口)
+     * KEYS[1] = 令牌桶状态 Key
      * KEYS[2] = 分钟限流 Key (每分钟窗口)
-     * ARGV[1] = 突发上限 (burst capacity)
-     * ARGV[2] = 分钟上限 (per-minute)
+     * ARGV[1] = 每秒补充令牌数 (replenish rate)
+     * ARGV[2] = 令牌桶容量 (burst capacity)
+     * ARGV[3] = 分钟上限 (per-minute)
      * 返回 1 = 放行, 0 = 拒绝
      * </pre>
      */
     private static final RedisScript<Long> RATE_LIMIT_SCRIPT = RedisScript.of(
             """
-            local burstCount = redis.call('INCR', KEYS[1])
-            if burstCount == 1 then
-                redis.call('EXPIRE', KEYS[1], 1)
-            end
+            local now = redis.call('TIME')
+            local nowMs = now[1] * 1000 + math.floor(now[2] / 1000)
+            local rate = tonumber(ARGV[1])
+            local capacity = tonumber(ARGV[2])
+            local bucket = redis.call('HMGET', KEYS[1], 'tokens', 'timestamp')
+            local tokens = tonumber(bucket[1]) or capacity
+            local timestamp = tonumber(bucket[2]) or nowMs
+            tokens = math.min(capacity, tokens + ((nowMs - timestamp) / 1000.0 * rate))
+            local burstAllowed = tokens >= 1
+            if burstAllowed then tokens = tokens - 1 end
+            redis.call('HSET', KEYS[1], 'tokens', tokens, 'timestamp', nowMs)
+            redis.call('PEXPIRE', KEYS[1], math.ceil(capacity / rate * 2000))
             local minuteCount = redis.call('INCR', KEYS[2])
             if minuteCount == 1 then
                 redis.call('EXPIRE', KEYS[2], 60)
             end
-            if burstCount > tonumber(ARGV[1]) or minuteCount > tonumber(ARGV[2]) then
+            if not burstAllowed or minuteCount > tonumber(ARGV[3]) then
                 return 0
             end
             return 1
@@ -83,6 +92,7 @@ public class RateLimitFilter implements GlobalFilter, Ordered {
 
         List<String> keys = List.of(burstKey, minuteKey);
         List<Object> args = List.of(
+                gatewayConfig.getRateLimitReplenishRate(),
                 gatewayConfig.getRateLimitBurstCapacity(),
                 gatewayConfig.getRateLimitPerMinute()
         );
@@ -107,17 +117,19 @@ public class RateLimitFilter implements GlobalFilter, Ordered {
      * 提取客户端真实 IP (支持反向代理场景)
      */
     private String extractClientIp(ServerHttpRequest request) {
-        String ip = request.getHeaders().getFirst("X-Forwarded-For");
-        if (ip != null && !ip.isEmpty()) {
-            return ip.split(",")[0].trim();
+        String remoteIp = request.getRemoteAddress() != null
+                ? request.getRemoteAddress().getAddress().getHostAddress() : "unknown";
+        if (gatewayConfig.getTrustedProxyAddresses().contains(remoteIp)) {
+            String ip = request.getHeaders().getFirst("X-Forwarded-For");
+            if (ip != null && !ip.isBlank()) {
+                return ip.split(",")[0].trim();
+            }
+            ip = request.getHeaders().getFirst("X-Real-IP");
+            if (ip != null && !ip.isBlank()) {
+                return ip.trim();
+            }
         }
-        ip = request.getHeaders().getFirst("X-Real-IP");
-        if (ip != null && !ip.isEmpty()) {
-            return ip.trim();
-        }
-        return request.getRemoteAddress() != null
-                ? request.getRemoteAddress().getAddress().getHostAddress()
-                : "unknown";
+        return remoteIp;
     }
 
     /**

@@ -9,14 +9,18 @@ import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 请求体大小限制全局过滤器
@@ -45,7 +49,35 @@ public class RequestSizeFilter implements GlobalFilter, Ordered {
             return payloadTooLarge(exchange, maxSize);
         }
 
-        return chain.filter(exchange);
+        AtomicLong receivedBytes = new AtomicLong();
+        ServerHttpRequestDecorator limitedRequest = new ServerHttpRequestDecorator(request) {
+            @Override
+            public Flux<DataBuffer> getBody() {
+                return super.getBody().handle((buffer, sink) -> {
+                    long received = receivedBytes.addAndGet(buffer.readableByteCount());
+                    if (received > maxSize) {
+                        DataBufferUtils.release(buffer);
+                        sink.error(new RequestPayloadTooLargeException(maxSize));
+                        return;
+                    }
+                    sink.next(buffer);
+                });
+            }
+        };
+        return chain.filter(exchange.mutate().request(limitedRequest).build());
+    }
+
+    public static final class RequestPayloadTooLargeException extends RuntimeException {
+        private final long maxSize;
+
+        public RequestPayloadTooLargeException(long maxSize) {
+            super("Request payload exceeds " + maxSize + " bytes");
+            this.maxSize = maxSize;
+        }
+
+        public long getMaxSize() {
+            return maxSize;
+        }
     }
 
     /**
