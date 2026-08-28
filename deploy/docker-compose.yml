@@ -1,0 +1,78 @@
+name: bin-cloud
+
+x-common-service: &common-service
+  restart: unless-stopped
+  env_file:
+    - .env
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+  networks:
+    - bin-cloud
+  logging:
+    driver: json-file
+    options:
+      max-size: "20m"
+      max-file: "5"
+
+services:
+  bin-gateway:
+    <<: *common-service
+    image: bin-cloud/bin-gateway:latest
+    container_name: bin-gateway
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+      args:
+        JAR_FILE: deploy/artifacts/bin-gateway.jar
+    environment:
+      JAVA_TOOL_OPTIONS: ${GATEWAY_JAVA_TOOL_OPTIONS:--Xms256m -Xmx512m -Duser.timezone=Asia/Shanghai}
+    ports:
+      - "8000:8000"
+
+  admin-api:
+    <<: *common-service
+    image: bin-cloud/admin-api:latest
+    container_name: admin-api
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+      args:
+        JAR_FILE: deploy/artifacts/admin-api.jar
+    environment:
+      JAVA_TOOL_OPTIONS: ${ADMIN_API_JAVA_TOOL_OPTIONS:--Xms256m -Xmx512m -Duser.timezone=Asia/Shanghai}
+    expose:
+      - "8100"
+
+  open-api:
+    <<: *common-service
+    image: bin-cloud/open-api:latest
+    container_name: open-api
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+      args:
+        JAR_FILE: deploy/artifacts/open-api.jar
+    environment:
+      JAVA_TOOL_OPTIONS: ${OPEN_API_JAVA_TOOL_OPTIONS:--Xms256m -Xmx512m -Duser.timezone=Asia/Shanghai}
+    expose:
+      - "8200"
+
+  platform-service:
+    <<: *common-service
+    image: bin-cloud/platform-service:latest
+    container_name: platform-service
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+      args:
+        JAR_FILE: deploy/artifacts/platform-service.jar
+    environment:
+      JAVA_TOOL_OPTIONS: ${PLATFORM_JAVA_TOOL_OPTIONS:--Xms512m -Xmx1024m -Duser.timezone=Asia/Shanghai}
+    expose:
+      - "8300"
+      - "20880"
+
+networks:
+  bin-cloud:
+    name: bin-cloud-network
+    driver: bridge

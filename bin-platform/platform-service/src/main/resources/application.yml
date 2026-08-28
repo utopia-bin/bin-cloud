@@ -15,19 +15,19 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 192.168.220.128:8848
+        server-addr: ${NACOS_SERVER_ADDR:127.0.0.1:8848}
         namespace: ${NACOS_NAMESPACE:bin-cloud}
         group: ${NACOS_DISCOVERY_GROUP:DEFAULT_GROUP}
         username: ${NACOS_USERNAME:nacos}
-        password: ${NACOS_PASSWORD:Beyond129814.}
+        password: ${NACOS_PASSWORD:}
       config:
-        server-addr: 192.168.220.128:8848
+        server-addr: ${NACOS_SERVER_ADDR:127.0.0.1:8848}
         namespace: ${NACOS_NAMESPACE:bin-cloud}
         group: Platform
         file-extension: yml
         refresh-enabled: true
         username: ${NACOS_USERNAME:nacos}
-        password: ${NACOS_PASSWORD:Beyond129814.}
+        password: ${NACOS_PASSWORD:}
 
   # 数据源 (MyBatis-Plus + HikariCP)
   datasource:
@@ -48,7 +48,7 @@ spring:
     redis:
       host: ${REDIS_HOST:192.168.220.128}
       port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:Redis_2026#x9K3mP}
+      password: ${REDIS_PASSWORD:}
       database: ${REDIS_DATABASE:0}
       timeout: 3000ms
       lettuce:
@@ -77,12 +77,12 @@ dubbo:
   application:
     name: platform-service
   registry:
-    address: nacos://${NACOS_SERVER_ADDR:192.168.220.128:8848}
+    address: nacos://${NACOS_SERVER_ADDR:127.0.0.1:8848}
     parameters:
       namespace: ${NACOS_NAMESPACE:bin-cloud}
       group: Dubbo
       username: ${NACOS_USERNAME:nacos}
-      password: ${NACOS_PASSWORD:Beyond129814.}
+      password: ${NACOS_PASSWORD:}
   protocol:
     name: dubbo
     port: ${DUBBO_PROTOCOL_PORT:20880}
@@ -94,7 +94,7 @@ dubbo:
 
 # 网关共用 JWT 配置 (与 bin-gateway 一致)
 gateway:
-  jwt-secret: ${JWT_SECRET:OTodCmc76iL29Vzveq+liHX99hIV3DK0JUp7WPae7tMt5Z5Co/V1yAtqnb8L6uinpD1RutyezEm8YPXlCVKTMw==}
+  jwt-secret: ${JWT_SECRET:}
   jwt-expiration: ${JWT_EXPIRATION:7200}
   token-blacklist-enabled: false
   context:

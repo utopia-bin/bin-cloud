@@ -15,31 +15,31 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 192.168.220.128:8848
+        server-addr: ${NACOS_SERVER_ADDR:127.0.0.1:8848}
         namespace: ${NACOS_NAMESPACE:bin-cloud}
         group: ${NACOS_DISCOVERY_GROUP:DEFAULT_GROUP}
         username: ${NACOS_USERNAME:nacos}
-        password: ${NACOS_PASSWORD:Beyond129814.}
+        password: ${NACOS_PASSWORD:}
       config:
-        server-addr: 192.168.220.128:8848
+        server-addr: ${NACOS_SERVER_ADDR:127.0.0.1:8848}
         namespace: ${NACOS_NAMESPACE:bin-cloud}
         group: Api
         file-extension: yml
         refresh-enabled: true
         username: ${NACOS_USERNAME:nacos}
-        password: ${NACOS_PASSWORD:Beyond129814.}
+        password: ${NACOS_PASSWORD:}
 
 # Dubbo (消费端)
 dubbo:
   application:
     name: admin-api
   registry:
-    address: nacos://${NACOS_SERVER_ADDR:192.168.220.128:8848}
+    address: nacos://${NACOS_SERVER_ADDR:127.0.0.1:8848}
     parameters:
       namespace: ${NACOS_NAMESPACE:bin-cloud}
       group: Dubbo
       username: ${NACOS_USERNAME:nacos}
-      password: ${NACOS_PASSWORD:Beyond129814.}
+      password: ${NACOS_PASSWORD:}
   consumer:
     check: false
     timeout: 5000
