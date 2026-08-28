@@ -31,7 +31,7 @@ class JwtAuthFilterTest {
     @Test
     void whitelistRequestCannotCarryForgedIdentityHeaders() {
         var filter = filter();
-        var request = MockServerHttpRequest.post("/auth/login")
+        var request = MockServerHttpRequest.post("/admin/auth/login")
                 .header(CommonConstants.HEADER_USER_ID, "forged")
                 .header(CommonConstants.HEADER_TENANT_ID, "999")
                 .header(CommonConstants.HEADER_GATEWAY_SIGNATURE, "forged")

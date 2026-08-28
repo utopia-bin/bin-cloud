@@ -25,6 +25,12 @@ public final class GatewayConstants {
             "/auth/phone/login",
             "/auth/phone/password",
             "/sms/code",
+            // JwtAuthFilter 在 RouteConfig 的 StripPrefix 之前执行，浏览器实际请求带 /admin 前缀。
+            "/admin/auth/login",
+            "/admin/auth/phone/register",
+            "/admin/auth/phone/login",
+            "/admin/auth/phone/password",
+            "/admin/sms/code",
             "/public/**",
             "/swagger-ui/**",
             "/swagger-ui.html",

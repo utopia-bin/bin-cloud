@@ -39,6 +39,8 @@ Spring Boot Test provides JUnit 5. Add focused unit tests named `*Test.java`; us
 
 History uses concise prefixes such as `feat:`, `fix:`, and `init:`; continue that pattern, for example `feat: add Milvus collection service`. Keep each commit scoped to one concern. Pull requests should explain the change, affected modules, configuration or migration requirements, and verification commands. Link relevant issues and include request/response examples for API changes.
 
+Do not create Git commits unless the user explicitly instructs you to commit the current changes. Requests to implement, fix, verify, review, finish, or submit work do not by themselves authorize a commit. When commit authorization is absent, leave the verified changes in the working tree and report that they remain uncommitted.
+
 ## Security & Configuration
 
 Keep credentials out of YAML and source files. Use environment placeholders or Nacos-managed secrets. Never log tokens, passwords, API keys, or raw personal data.
