@@ -9,6 +9,7 @@ import cn.utopiabin.cloud.platform.model.dto.auth.PhoneRegisterDTO;
 import cn.utopiabin.cloud.platform.model.dto.auth.PhoneResetPasswordDTO;
 import cn.utopiabin.cloud.platform.model.vo.auth.CurrentUserVO;
 import cn.utopiabin.cloud.platform.model.vo.auth.LoginResultVO;
+import cn.utopiabin.cloud.platform.model.vo.auth.PasswordPolicyVO;
 import cn.utopiabin.cloud.platform.model.vo.iam.SysMenuTreeVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -34,6 +35,9 @@ import java.util.List;
  */
 @Tag(name = "认证授权", description = "登录、登出、获取当前用户信息及菜单权限、修改密码")
 public interface AuthApi {
+
+    @Operation(summary = "获取当前密码设置策略")
+    PasswordPolicyVO passwordPolicy() throws BizException;
 
     @Operation(summary = "账号密码登录", description = "验证租户编码、用户名和密码，签发JWT Token，返回用户信息、角色及菜单树")
     LoginResultVO login(@Parameter(description = "登录参数", required = true) @Valid LoginDTO dto) throws BizException;

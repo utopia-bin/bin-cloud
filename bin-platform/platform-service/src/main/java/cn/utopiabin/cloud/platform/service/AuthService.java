@@ -23,6 +23,7 @@ import cn.utopiabin.cloud.platform.model.dto.auth.PhoneResetPasswordDTO;
 import cn.utopiabin.cloud.platform.model.enums.SmsScene;
 import cn.utopiabin.cloud.platform.model.vo.auth.CurrentUserVO;
 import cn.utopiabin.cloud.platform.model.vo.auth.LoginResultVO;
+import cn.utopiabin.cloud.platform.model.vo.auth.PasswordPolicyVO;
 import cn.utopiabin.cloud.platform.model.vo.iam.SysMenuTreeVO;
 import cn.utopiabin.cloud.platform.model.vo.iam.SysRoleVO;
 import cn.utopiabin.cloud.platform.model.vo.iam.SysUserVO;
@@ -81,6 +82,10 @@ public class AuthService {
     private final LoginSecurityProperties loginSecurityProperties;
     private final PasswordValidator passwordValidator;
     private final SmsService smsService;
+
+    public PasswordPolicyVO passwordPolicy() {
+        return passwordValidator.policy();
+    }
 
     // ==================== 登录 ====================
 

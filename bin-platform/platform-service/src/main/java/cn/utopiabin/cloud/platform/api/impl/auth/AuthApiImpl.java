@@ -8,6 +8,7 @@ import cn.utopiabin.cloud.platform.model.dto.auth.PhoneRegisterDTO;
 import cn.utopiabin.cloud.platform.model.dto.auth.PhoneResetPasswordDTO;
 import cn.utopiabin.cloud.platform.model.vo.auth.CurrentUserVO;
 import cn.utopiabin.cloud.platform.model.vo.auth.LoginResultVO;
+import cn.utopiabin.cloud.platform.model.vo.auth.PasswordPolicyVO;
 import cn.utopiabin.cloud.platform.model.vo.iam.SysMenuTreeVO;
 import cn.utopiabin.cloud.platform.service.AuthService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -32,6 +33,11 @@ import java.util.List;
 public class AuthApiImpl implements AuthApi {
 
     private final AuthService authService;
+
+    @Override
+    public PasswordPolicyVO passwordPolicy() {
+        return authService.passwordPolicy();
+    }
 
     @Override
     public LoginResultVO login(LoginDTO dto) {

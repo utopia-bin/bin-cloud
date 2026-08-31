@@ -18,6 +18,7 @@ import cn.utopiabin.cloud.platform.model.vo.iam.SysMenuVO;
 import cn.utopiabin.cloud.platform.repository.iam.SysMenuRepository;
 import cn.utopiabin.cloud.platform.service.PermissionService;
 import cn.utopiabin.cloud.platform.util.MenuTreeBuilder;
+import cn.utopiabin.cloud.platform.util.TransactionAfterCommitExecutor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -57,7 +58,7 @@ public class SysMenuService {
         menu.setPermission(StrUtil.defaultIfBlank(dto.getPermission(), ""));
         menuRepository.save(menu);
 
-        permissionService.evictAllUserPermissions();
+        TransactionAfterCommitExecutor.afterCommit(permissionService::evictAllUserPermissions);
         return menu.getId();
     }
 
@@ -88,7 +89,7 @@ public class SysMenuService {
             throw new BizException(PlatformErrorCode.CONFLICT.getCode(), "菜单已被修改，请刷新后重试");
         }
 
-        permissionService.evictAllUserPermissions();
+        TransactionAfterCommitExecutor.afterCommit(permissionService::evictAllUserPermissions);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -101,7 +102,7 @@ public class SysMenuService {
                     PlatformErrorCode.MENU_HAS_CHILDREN.getMsg());
         }
         menuRepository.removeById(id);
-        permissionService.evictAllUserPermissions();
+        TransactionAfterCommitExecutor.afterCommit(permissionService::evictAllUserPermissions);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -115,7 +116,7 @@ public class SysMenuService {
             }
         }
         menuRepository.removeByIds(dto.getIds());
-        permissionService.evictAllUserPermissions();
+        TransactionAfterCommitExecutor.afterCommit(permissionService::evictAllUserPermissions);
     }
 
     @RequirePermission("platform:menu:read")

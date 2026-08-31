@@ -9,6 +9,7 @@ import cn.utopiabin.cloud.platform.model.dto.auth.PhoneRegisterDTO;
 import cn.utopiabin.cloud.platform.model.dto.auth.PhoneResetPasswordDTO;
 import cn.utopiabin.cloud.platform.model.vo.auth.CurrentUserVO;
 import cn.utopiabin.cloud.platform.model.vo.auth.LoginResultVO;
+import cn.utopiabin.cloud.platform.model.vo.auth.PasswordPolicyVO;
 import cn.utopiabin.cloud.platform.model.vo.iam.SysMenuTreeVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -33,6 +34,12 @@ public class AuthController {
 
     @DubboReference
     private AuthApi authApi;
+
+    @Operation(summary = "获取当前密码设置策略")
+    @GetMapping("/password-policy")
+    public RestResult<PasswordPolicyVO> passwordPolicy() {
+        return RestResult.ok(authApi.passwordPolicy());
+    }
 
     @Operation(summary = "账号密码登录")
     @PostMapping("/login")

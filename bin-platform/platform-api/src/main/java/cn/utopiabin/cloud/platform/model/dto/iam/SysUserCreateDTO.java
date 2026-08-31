@@ -23,8 +23,9 @@ public class SysUserCreateDTO extends JsonSerializable {
     private String username;
 
     @NotBlank(message = "密码不能为空")
-    @Size(min = 6, max = 100, message = "密码长度必须在6-100个字符之间")
-    @Schema(description = "密码", example = "123456", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Size(max = 64, message = "密码长度不能超过64个字符")
+    @Schema(description = "登录密码：默认至少8位，含大小写字母和数字；具体要求由密码策略接口返回，UTF-8不超过72字节。通过HTTPS传输",
+            requiredMode = Schema.RequiredMode.REQUIRED)
     private String password;
 
     @Size(max = 50, message = "真实姓名长度不能超过50个字符")
