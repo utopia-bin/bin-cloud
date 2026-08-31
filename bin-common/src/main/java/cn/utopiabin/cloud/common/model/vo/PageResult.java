@@ -1,5 +1,6 @@
 package cn.utopiabin.cloud.common.model.vo;
 
+import cn.utopiabin.cloud.common.json.JsonSerializable;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,7 +18,7 @@ import java.util.List;
 @Setter
 @ToString
 @Schema(description = "分页查询结果")
-public class PageResult<T> {
+public class PageResult<T> extends JsonSerializable {
 
     /**
      * 当前页码 (从 1 开始)

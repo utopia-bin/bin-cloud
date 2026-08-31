@@ -1,2 +1,3 @@
+# Loaded automatically by Dubbo from the classpath in STRICT mode.
+# Business exceptions may not appear in API signatures; keep explicit trust.
 cn.utopiabin.cloud.common.exception.BizException
-cn.utopiabin.cloud.common.rest.RestResult
