@@ -29,6 +29,10 @@ public class LoginResultVO extends JsonSerializable {
     @Schema(description = "角色列表")
     private List<SysRoleVO> roles;
 
+    @Schema(description = "当前用户的有效权限码，独立于菜单可见性；* 表示全部权限，空列表表示无业务权限",
+            example = "[\"platform:user:read\", \"platform:role:read\"]")
+    private List<String> permissionCodes = List.of();
+
     @Schema(description = "菜单树（前端动态路由）")
     private List<SysMenuTreeVO> menus;
 }

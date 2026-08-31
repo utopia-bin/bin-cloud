@@ -1,6 +1,8 @@
 package cn.utopiabin.cloud.platform.service;
 
 import cn.utopiabin.cloud.common.exception.BizException;
+import cn.utopiabin.cloud.common.context.UserContext;
+import cn.utopiabin.cloud.common.context.UserContextHolder;
 import cn.utopiabin.cloud.common.redis.RedisClient;
 import cn.utopiabin.cloud.platform.config.JwtTokenProperties;
 import cn.utopiabin.cloud.platform.config.LoginSecurityProperties;
@@ -15,6 +17,9 @@ import cn.utopiabin.cloud.platform.repository.tenant.TenantRepository;
 import cn.utopiabin.cloud.platform.util.JwtTokenService;
 import cn.utopiabin.cloud.platform.util.PasswordValidator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -30,6 +35,11 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
+
+    @AfterEach
+    void clearUserContext() {
+        UserContextHolder.clear();
+    }
 
     @Mock
     private SysUserRepository userRepository;
@@ -54,6 +64,56 @@ class AuthServiceTest {
 
     @InjectMocks
     private AuthService authService;
+
+    @ParameterizedTest
+    @ValueSource(strings = {"*", "platform:user:read"})
+    void loginReturnsEffectivePermissionsEvenWithoutMenus(String permission) {
+        var tenant = new Tenant();
+        tenant.setId(7L);
+        tenant.setAvailable(true);
+        var user = user();
+        var dto = new LoginDTO();
+        dto.setTenantCode("test");
+        dto.setUsername("test");
+        dto.setPassword("test-only");
+        when(tenantRepository.getByCode("test")).thenReturn(tenant);
+        when(userRepository.getByTenantIdAndUsername(7L, "test")).thenReturn(user);
+        when(passwordEncoder.matches("test-only", "encoded")).thenReturn(true);
+        when(permissionService.getUserPermissions(10L)).thenReturn(permissions(permission));
+
+        var result = authService.login(dto);
+
+        assertEquals(java.util.List.of(permission), result.getPermissionCodes());
+        assertEquals(java.util.List.of(), result.getMenus());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"*", "platform:role:read"})
+    void currentUserReturnsPermissionsSeparatelyFromMenus(String permission) {
+        UserContextHolder.set(UserContext.of("10", "test", "7", ""));
+        when(userRepository.getOrThrow(10L)).thenReturn(user());
+        when(permissionService.getUserPermissions(10L)).thenReturn(permissions(permission));
+
+        var result = authService.currentUser();
+
+        assertEquals(java.util.List.of(permission), result.getPermissionCodes());
+        assertEquals(java.util.List.of(), result.getMenus());
+    }
+
+    private SysUser user() {
+        var user = new SysUser();
+        user.setId(10L);
+        user.setTenantId(7L);
+        user.setUsername("test");
+        user.setPassword("encoded");
+        user.setAvailable(true);
+        return user;
+    }
+
+    private UserPermissionVO permissions(String permission) {
+        return new UserPermissionVO(java.util.List.of(), java.util.List.of(), java.util.List.of(permission),
+                java.util.List.of(), java.util.List.of(), java.util.List.of());
+    }
 
     @Test
     void loginQueriesUserWithinResolvedTenantAndUsesTenantScopedFailureKey() {

@@ -1,6 +1,7 @@
 package cn.utopiabin.cloud.platform.api.impl.system;
 
 import cn.utopiabin.cloud.common.model.vo.PageResult;
+import cn.utopiabin.cloud.platform.annotation.RequirePermission;
 import cn.utopiabin.cloud.platform.api.system.SysDictApi;
 import cn.utopiabin.cloud.platform.model.dto.system.*;
 import cn.utopiabin.cloud.platform.model.vo.system.*;
@@ -30,31 +31,37 @@ public class SysDictApiImpl implements SysDictApi {
     // ==================== 字典 CRUD ====================
 
     @Override
+    @RequirePermission("platform:dict:create")
     public void createDict(SysDictCreateDTO dto) {
         dictService.createDict(dto);
     }
 
     @Override
+    @RequirePermission("platform:dict:update")
     public void updateDict(SysDictUpdateDTO dto) {
         dictService.updateDict(dto);
     }
 
     @Override
+    @RequirePermission("platform:dict:delete")
     public void removeDict(Long id) {
         dictService.removeDict(id);
     }
 
     @Override
+    @RequirePermission("platform:dict:read")
     public SysDictVO getDict(Long id) {
         return dictService.getDict(id);
     }
 
     @Override
+    @RequirePermission("platform:dict:read")
     public PageResult<SysDictVO> pageDict(SysDictPageQuery query) {
         return dictService.pageDict(query);
     }
 
     @Override
+    @RequirePermission("platform:dict:read")
     public List<SysDictVO> listDict(SysDictListQuery query) {
         return dictService.listDict(query);
     }
@@ -62,26 +69,31 @@ public class SysDictApiImpl implements SysDictApi {
     // ==================== 字典项 CRUD ====================
 
     @Override
+    @RequirePermission("platform:dict:create")
     public void createDictOption(SysDictOptionsCreateDTO dto) {
         dictService.createDictOption(dto);
     }
 
     @Override
+    @RequirePermission("platform:dict:update")
     public void updateDictOption(SysDictOptionsUpdateDTO dto) {
         dictService.updateDictOption(dto);
     }
 
     @Override
+    @RequirePermission("platform:dict:delete")
     public void removeDictOption(Long id) {
         dictService.removeDictOption(id);
     }
 
     @Override
+    @RequirePermission("platform:dict:read")
     public SysDictOptionsVO getDictOption(Long id) {
         return dictService.getDictOption(id);
     }
 
     @Override
+    @RequirePermission("platform:dict:read")
     public PageResult<SysDictOptionsVO> pageDictOption(SysDictOptionsPageQuery query) {
         return dictService.pageDictOption(query);
     }
@@ -89,11 +101,13 @@ public class SysDictApiImpl implements SysDictApi {
     // ==================== 缓存 ====================
 
     @Override
+    @RequirePermission("platform:dict:read")
     public List<SysDictOptionsItemVO> getDictItems(String dictCode) {
         return dictService.getDictItems(dictCode);
     }
 
     @Override
+    @RequirePermission("platform:dict:update")
     public void refreshDictCache() {
         dictService.refreshDictCache();
     }
@@ -101,16 +115,19 @@ public class SysDictApiImpl implements SysDictApi {
     // ==================== 树形 ====================
 
     @Override
+    @RequirePermission("platform:dict:read")
     public List<SysDictOptionsTreeVO> getDictTree(String dictCode) {
         return dictService.getDictTree(dictCode);
     }
 
     @Override
+    @RequirePermission("platform:dict:read")
     public List<SysDictOptionsTreeVO> getOptionalParents(Long dictId, Long excludeId) {
         return dictService.getOptionalParents(dictId, excludeId);
     }
 
     @Override
+    @RequirePermission("platform:dict:read")
     public List<SysDictOptionsMulTreeVO> getMulDictTree(String codes) {
         return dictService.getMulDictTree(codes);
     }

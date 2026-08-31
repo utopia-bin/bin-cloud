@@ -278,6 +278,7 @@ public class AuthService {
         var vo = new CurrentUserVO();
         vo.setUser(user.copyTo(SysUserVO.class));
         vo.setRoles(perm.getRoles());
+        vo.setPermissionCodes(perm.getPermissionCodes());
         vo.setMenus(perm.getMenuTree());
         return vo;
     }
@@ -412,6 +413,7 @@ public class AuthService {
         result.setToken(token);
         result.setUser(user.copyTo(SysUserVO.class));
         result.setRoles(perm.getRoles());
+        result.setPermissionCodes(perm.getPermissionCodes());
         result.setMenus(perm.getMenuTree());
         return result;
     }

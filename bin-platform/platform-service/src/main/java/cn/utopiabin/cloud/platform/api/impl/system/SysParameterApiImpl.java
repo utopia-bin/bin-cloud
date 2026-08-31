@@ -1,6 +1,7 @@
 package cn.utopiabin.cloud.platform.api.impl.system;
 
 import cn.utopiabin.cloud.common.model.vo.PageResult;
+import cn.utopiabin.cloud.platform.annotation.RequirePermission;
 import cn.utopiabin.cloud.platform.api.system.SysParameterApi;
 import cn.utopiabin.cloud.platform.model.dto.system.SysParameterCreateDTO;
 import cn.utopiabin.cloud.platform.model.dto.system.SysParameterListQuery;
@@ -31,36 +32,43 @@ public class SysParameterApiImpl implements SysParameterApi {
     private final SysParameterService parameterService;
 
     @Override
+    @RequirePermission("platform:parameter:create")
     public void create(SysParameterCreateDTO dto) {
         parameterService.create(dto);
     }
 
     @Override
+    @RequirePermission("platform:parameter:update")
     public void update(SysParameterUpdateDTO dto) {
         parameterService.update(dto);
     }
 
     @Override
+    @RequirePermission("platform:parameter:delete")
     public void remove(Long id) {
         parameterService.remove(id);
     }
 
     @Override
+    @RequirePermission("platform:parameter:read")
     public PageResult<SysParameterVO> page(SysParameterPageQuery query) {
         return parameterService.page(query);
     }
 
     @Override
+    @RequirePermission("platform:parameter:read")
     public List<SysParameterVO> list(SysParameterListQuery query) {
         return parameterService.list(query);
     }
 
     @Override
+    @RequirePermission("platform:parameter:read")
     public String getValue(String key, String defaultValue) {
         return parameterService.getValue(key, defaultValue);
     }
 
     @Override
+    @RequirePermission("platform:parameter:update")
     public void refreshCache() {
         parameterService.refreshCache();
     }
