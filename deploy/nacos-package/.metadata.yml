@@ -1,0 +1,49 @@
+metadata:
+  - appName: bin-gateway
+    dataId: bin-gateway.yml
+    desc: Bin Cloud gateway runtime configuration
+    group: Gateway
+    type: yaml
+    configTags: gateway
+  - appName: bin-gateway
+    dataId: bin-gateway-routes.yml
+    desc: Additional dynamic routes for Bin Cloud gateway
+    group: Gateway
+    type: yaml
+    configTags: gateway,routes
+  - appName: admin-api
+    dataId: admin-api.yml
+    desc: Bin Cloud admin API runtime configuration
+    group: Api
+    type: yaml
+    configTags: api,admin
+  - appName: admin-api
+    dataId: admin-api-dubbo.yml
+    desc: Bin Cloud admin API Dubbo consumer configuration
+    group: Api
+    type: yaml
+    configTags: api,admin,dubbo
+  - appName: open-api
+    dataId: open-api.yml
+    desc: Bin Cloud open API runtime configuration
+    group: Api
+    type: yaml
+    configTags: api,open
+  - appName: open-api
+    dataId: open-api-dubbo.yml
+    desc: Bin Cloud open API Dubbo consumer configuration
+    group: Api
+    type: yaml
+    configTags: api,open,dubbo
+  - appName: platform-service
+    dataId: platform-service.yml
+    desc: Bin Cloud platform service runtime configuration
+    group: Platform
+    type: yaml
+    configTags: platform
+  - appName: platform-service
+    dataId: platform-service-dubbo.yml
+    desc: Bin Cloud platform service Dubbo provider configuration
+    group: Platform
+    type: yaml
+    configTags: platform,dubbo

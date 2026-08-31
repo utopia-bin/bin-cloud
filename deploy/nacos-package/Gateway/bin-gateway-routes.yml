@@ -1,0 +1,8 @@
+# RouteConfig 已内置 /admin/**、/open/** 和 /platform/** 三条核心路由。
+# 此配置仅用于追加动态路由，避免重复定义导致请求匹配顺序异常。
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes: []

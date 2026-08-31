@@ -1,0 +1,15 @@
+dubbo:
+  application:
+    name: admin-api
+    qos-enable: false
+  registry:
+    address: nacos://${NACOS_SERVER_ADDR:host.docker.internal:8848}
+    parameters:
+      namespace: ${NACOS_NAMESPACE:bin-cloud}
+      group: ${DUBBO_REGISTRY_GROUP:Dubbo}
+      username: ${NACOS_USERNAME:nacos}
+      password: ${NACOS_PASSWORD:}
+  consumer:
+    check: false
+    timeout: ${DUBBO_CONSUMER_TIMEOUT:5000}
+    retries: ${DUBBO_CONSUMER_RETRIES:0}

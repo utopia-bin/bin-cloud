@@ -1,0 +1,19 @@
+dubbo:
+  application:
+    name: platform-service
+    qos-enable: false
+  registry:
+    address: nacos://${NACOS_SERVER_ADDR:host.docker.internal:8848}
+    parameters:
+      namespace: ${NACOS_NAMESPACE:bin-cloud}
+      group: ${DUBBO_REGISTRY_GROUP:Dubbo}
+      username: ${NACOS_USERNAME:nacos}
+      password: ${NACOS_PASSWORD:}
+  protocol:
+    name: dubbo
+    port: ${DUBBO_PROTOCOL_PORT:20880}
+  scan:
+    base-packages: cn.utopiabin.cloud.platform.api.impl
+  provider:
+    timeout: ${DUBBO_PROVIDER_TIMEOUT:5000}
+    retries: ${DUBBO_PROVIDER_RETRIES:0}
