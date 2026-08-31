@@ -14,7 +14,10 @@ import org.springframework.data.redis.core.RedisTemplate;
  *
  * @since 1.0
  */
-@AutoConfiguration
+@AutoConfiguration(afterName = {
+        "org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration",
+        "org.redisson.spring.starter.RedissonAutoConfigurationV2"
+})
 @ConditionalOnClass({RedisTemplate.class, RedissonClient.class})
 @EnableConfigurationProperties(RedisConfig.class)
 public class RedisAutoConfiguration {
@@ -22,9 +25,11 @@ public class RedisAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnBean({RedisTemplate.class, RedissonClient.class})
-    public RedisClient redisClient(RedisTemplate<String, Object> redisTemplate,
+    @SuppressWarnings("unchecked")
+    public RedisClient redisClient(RedisTemplate<? super String, Object> redisTemplate,
                                    RedissonClient redissonClient,
                                    RedisConfig redisConfig) {
-        return new RedisClient(redisTemplate, redissonClient, redisConfig);
+        // 默认模板的 Key 类型为 Object，也能接受本客户端的 String Key；复用模板以保留序列化配置。
+        return new RedisClient((RedisTemplate<String, Object>) redisTemplate, redissonClient, redisConfig);
     }
 }
