@@ -103,6 +103,13 @@ gateway:
 
 # ==================== 平台安全配置 ====================
 platform:
+  # 显式开启的一次性初始化；不写死默认密码，成功后关闭并删除环境变量中的密码。
+  bootstrap:
+    enabled: ${PLATFORM_BOOTSTRAP_ENABLED:false}
+    tenant-code: ${PLATFORM_BOOTSTRAP_TENANT_CODE:default}
+    tenant-name: ${PLATFORM_BOOTSTRAP_TENANT_NAME:默认租户}
+    username: ${PLATFORM_BOOTSTRAP_USERNAME:admin}
+    password: ${PLATFORM_BOOTSTRAP_PASSWORD:}
   # 多租户 SQL 隔离 (自动为业务 SQL 追加 tenant_id 条件)
   tenant:
     enabled: true

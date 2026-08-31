@@ -108,3 +108,65 @@ docker compose --env-file deploy/.env -f deploy/docker-compose.yml down
 ```
 
 前端 OpenResty 继续代理宿主机 `8000` 端口，因此后端部署完成后不需要修改现有前端 Nginx 配置。
+
+## 6. 首次初始化管理员并登录
+
+项目没有公开的默认密码。初始化默认关闭，不依赖短信服务，不需要修改前端；只在显式开启后的平台服务启动时执行，不提供公开初始化接口。
+
+### 开启一次性初始化
+
+先备份已有数据库，确认连接的是要初始化的数据库，并确保 V1/V2 对应的表结构已经完整建立。此功能只写初始数据，不代替 Flyway，也不会自动改变 Flyway 基线。
+
+在服务器 `deploy/.env` 中添加或修改以下配置（下面的密码说明必须替换，不能直接作为密码使用）：
+
+```dotenv
+PLATFORM_BOOTSTRAP_ENABLED=true
+PLATFORM_BOOTSTRAP_TENANT_CODE=default
+PLATFORM_BOOTSTRAP_TENANT_NAME=默认租户
+PLATFORM_BOOTSTRAP_USERNAME=admin
+PLATFORM_BOOTSTRAP_PASSWORD='填写你自己生成的强密码'
+```
+
+密码至少 12 个字符，必须含大写字母、小写字母和数字，UTF-8 编码不超过 72 字节；同时遵守 Nacos 中现有的密码强度策略。不要把密码提交 Git、发到聊天或放进命令行参数。可用 `vi deploy/.env` 在服务器编辑，并执行 `chmod 600 deploy/.env`。Compose 单引号可以避免密码中的 `$` 被插值；不要在密码中使用单引号。
+
+`platform.bootstrap` 的环境变量映射已放在本地 `application.yml` 中，因此现有 Nacos 配置包不需要重新导入。不要在 Nacos 写死初始密码或覆盖这些开关。当前 Compose 从 `.env` 注入环境变量。
+
+在本次代码已推送远程后，执行：
+
+```bash
+./deploy/backend-deploy.sh platform-service
+docker compose --env-file deploy/.env -f deploy/docker-compose.yml logs --tail=100 platform-service
+```
+
+看到“平台管理员初始化成功，事务已提交”日志且服务正常运行后，使用以下信息登录前端：
+
+- 租户代码：`default`（或你设置的 `PLATFORM_BOOTSTRAP_TENANT_CODE`）
+- 用户名：`admin`（或你设置的 `PLATFORM_BOOTSTRAP_USERNAME`）
+- 密码：你在服务器设置的初始密码
+
+初始化会创建租户、管理员、`super_admin` 角色、通配权限关联，以及当前前端所需的 8 个导航菜单。租户/菜单已经存在时保留原有配置；权限校验仍由后端执行，菜单不是授权依据。超级管理员不会自动绕过租户 SQL 隔离。
+
+### 成功后关闭并移除初始密码
+
+修改 `.env`：
+
+```dotenv
+PLATFORM_BOOTSTRAP_ENABLED=false
+PLATFORM_BOOTSTRAP_PASSWORD=
+```
+
+然后重新创建平台服务容器，使环境变量生效（仅 `restart` 不会更新环境变量）：
+
+```bash
+docker compose --env-file deploy/.env -f deploy/docker-compose.yml \
+  up -d --no-deps --force-recreate platform-service
+```
+
+当前 Compose 的 `.env` 是所有后端服务共用的。如果其他容器也曾在密码存在时创建，请同时重新创建这些容器，移除其环境中的初始密码。完成后可在前端右上角修改密码。
+
+### 幂等和故障保护
+
+- 数据库中已存在任何 `super_admin` 角色（包含禁用/软删除状态）时，跳过管理员创建；不会重置密码、恢复角色或新增第二个超级管理员。已有孤立角色但没有可用管理员时需要人工核对，初始化不是找回密码工具。
+- 目标租户存在同名账号时，拒绝初始化，不会把普通用户提升为管理员。目标租户被禁用、删除或过期时也会拒绝，不会自动修改其状态。
+- 初始数据使用同一个事务写入；任一步失败全部回滚。同库并发启动通过通配权限唯一键及行锁串行化。
+- 若启动提示表/字段不存在，应先核对表结构；不要删库或修改已有迁移脚本来绕过检查。

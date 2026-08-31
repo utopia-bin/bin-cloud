@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-@TableName("sys_tenant")
+@TableName(value = "sys_tenant", excludeProperty = "tenantId")
 @Schema(description = "租户")
 public class Tenant extends BaseEntity {
 
