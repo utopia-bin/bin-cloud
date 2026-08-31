@@ -6,6 +6,7 @@ import cn.utopiabin.cloud.platform.model.vo.tenant.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -22,10 +23,10 @@ import java.util.List;
 public interface TenantApi {
 
     @Operation(summary = "新增租户", description = "租户编码全局唯一校验")
-    Long create(@Parameter(description = "租户新增参数", required = true) TenantCreateDTO dto);
+    Long create(@Parameter(description = "租户新增参数", required = true) @Valid TenantCreateDTO dto);
 
     @Operation(summary = "编辑租户", description = "按ID编辑租户信息")
-    void update(@Parameter(description = "租户编辑参数", required = true) TenantUpdateDTO dto);
+    void update(@Parameter(description = "租户编辑参数", required = true) @Valid TenantUpdateDTO dto);
 
     @Operation(summary = "删除租户")
     void remove(@Parameter(description = "租户ID", required = true) Long id);
@@ -38,7 +39,7 @@ public interface TenantApi {
     TenantVO get(@Parameter(description = "租户ID", required = true) Long id);
 
     @Operation(summary = "分页查询租户")
-    PageResult<TenantVO> page(@Parameter(description = "分页查询条件", required = true) TenantPageQuery query);
+    PageResult<TenantVO> page(@Parameter(description = "分页查询条件", required = true) @Valid TenantPageQuery query);
 
     @Operation(summary = "列表查询租户")
     List<TenantVO> list(@Parameter(description = "列表查询条件") TenantListQuery query);

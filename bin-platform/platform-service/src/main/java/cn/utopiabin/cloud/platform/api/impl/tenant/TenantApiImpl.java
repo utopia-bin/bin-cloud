@@ -32,12 +32,12 @@ public class TenantApiImpl implements TenantApi {
     private final TenantService tenantService;
 
     @Override
-    public Long create(@jakarta.validation.Valid TenantCreateDTO dto) {
+    public Long create(TenantCreateDTO dto) {
         return tenantService.create(dto);
     }
 
     @Override
-    public void update(@jakarta.validation.Valid TenantUpdateDTO dto) {
+    public void update(TenantUpdateDTO dto) {
         tenantService.update(dto);
     }
 
@@ -57,7 +57,7 @@ public class TenantApiImpl implements TenantApi {
     }
 
     @Override
-    public PageResult<TenantVO> page(@jakarta.validation.Valid TenantPageQuery query) {
+    public PageResult<TenantVO> page(TenantPageQuery query) {
         return tenantService.page(query);
     }
 

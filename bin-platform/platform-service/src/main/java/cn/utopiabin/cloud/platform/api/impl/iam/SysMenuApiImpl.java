@@ -32,12 +32,12 @@ public class SysMenuApiImpl implements SysMenuApi {
     private final SysMenuService menuService;
 
     @Override
-    public Long create(@jakarta.validation.Valid SysMenuCreateDTO dto) {
+    public Long create(SysMenuCreateDTO dto) {
         return menuService.create(dto);
     }
 
     @Override
-    public void update(@jakarta.validation.Valid SysMenuUpdateDTO dto) {
+    public void update(SysMenuUpdateDTO dto) {
         menuService.update(dto);
     }
 
@@ -47,7 +47,7 @@ public class SysMenuApiImpl implements SysMenuApi {
     }
 
     @Override
-    public void batchDelete(@jakarta.validation.Valid BatchDeleteDTO dto) {
+    public void batchDelete(BatchDeleteDTO dto) {
         menuService.batchDelete(dto);
     }
 

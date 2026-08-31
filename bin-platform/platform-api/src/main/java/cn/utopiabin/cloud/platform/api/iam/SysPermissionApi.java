@@ -6,6 +6,8 @@ import cn.utopiabin.cloud.platform.model.vo.iam.SysPermissionVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 
@@ -23,16 +25,16 @@ import java.util.List;
 public interface SysPermissionApi {
 
     @Operation(summary = "新增权限资源", description = "权限编码全局唯一，格式为 domain:resource:action")
-    Long create(@Parameter(description = "权限资源新增参数", required = true) SysPermissionCreateDTO dto);
+    Long create(@Parameter(description = "权限资源新增参数", required = true) @Valid SysPermissionCreateDTO dto);
 
     @Operation(summary = "编辑权限资源", description = "使用乐观锁版本号更新；被菜单引用时不可修改权限编码")
-    void update(@Parameter(description = "权限资源编辑参数", required = true) SysPermissionUpdateDTO dto);
+    void update(@Parameter(description = "权限资源编辑参数", required = true) @Valid SysPermissionUpdateDTO dto);
 
     @Operation(summary = "删除权限资源", description = "已分配给角色或被菜单引用的权限资源不可删除")
-    void remove(@Parameter(description = "权限资源ID", required = true) Long id);
+    void remove(@Parameter(description = "权限资源ID", required = true) @NotNull Long id);
 
     @Operation(summary = "查询权限资源详情")
-    SysPermissionVO get(@Parameter(description = "权限资源ID", required = true) Long id);
+    SysPermissionVO get(@Parameter(description = "权限资源ID", required = true) @NotNull Long id);
 
     @Operation(summary = "查询全部权限资源", description = "按排序值和权限编码返回权限资源目录")
     List<SysPermissionVO> list();

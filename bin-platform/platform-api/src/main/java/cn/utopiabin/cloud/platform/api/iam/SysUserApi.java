@@ -7,6 +7,7 @@ import cn.utopiabin.cloud.platform.model.vo.iam.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -23,16 +24,16 @@ import java.util.List;
 public interface SysUserApi {
 
     @Operation(summary = "新增用户", description = "用户名唯一校验，密码BCrypt加密存储")
-    Long create(@Parameter(description = "用户新增参数", required = true) SysUserCreateDTO dto);
+    Long create(@Parameter(description = "用户新增参数", required = true) @Valid SysUserCreateDTO dto);
 
     @Operation(summary = "编辑用户", description = "按ID编辑用户信息，密码不填则不修改")
-    void update(@Parameter(description = "用户编辑参数", required = true) SysUserUpdateDTO dto);
+    void update(@Parameter(description = "用户编辑参数", required = true) @Valid SysUserUpdateDTO dto);
 
     @Operation(summary = "删除用户", description = "逻辑删除，同时删除该用户的所有角色关联")
     void remove(@Parameter(description = "用户ID", required = true) Long id);
 
     @Operation(summary = "批量删除用户", description = "批量逻辑删除，同时删除关联的角色记录")
-    void batchDelete(@Parameter(description = "批量删除参数", required = true) BatchDeleteDTO dto);
+    void batchDelete(@Parameter(description = "批量删除参数", required = true) @Valid BatchDeleteDTO dto);
 
     @Operation(summary = "启用/禁用用户", description = "切换用户的启用状态")
     void enable(@Parameter(description = "用户ID", required = true) Long id,
@@ -42,13 +43,13 @@ public interface SysUserApi {
     SysUserVO get(@Parameter(description = "用户ID", required = true) Long id);
 
     @Operation(summary = "分页查询用户")
-    PageResult<SysUserVO> page(@Parameter(description = "分页查询条件", required = true) SysUserPageQuery query);
+    PageResult<SysUserVO> page(@Parameter(description = "分页查询条件", required = true) @Valid SysUserPageQuery query);
 
     @Operation(summary = "列表查询用户")
     List<SysUserVO> list(@Parameter(description = "列表查询条件") SysUserListQuery query);
 
     @Operation(summary = "为用户分配角色", description = "全量替换用户的角色列表")
-    void assignRoles(@Parameter(description = "用户分配角色参数", required = true) SysUserAssignRolesDTO dto);
+    void assignRoles(@Parameter(description = "用户分配角色参数", required = true) @Valid SysUserAssignRolesDTO dto);
 
     @Operation(summary = "获取用户拥有的角色列表")
     List<SysRoleVO> getRoles(@Parameter(description = "用户ID", required = true) Long userId);

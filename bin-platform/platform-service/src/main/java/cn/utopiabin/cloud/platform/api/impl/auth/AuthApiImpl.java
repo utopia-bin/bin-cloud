@@ -34,22 +34,22 @@ public class AuthApiImpl implements AuthApi {
     private final AuthService authService;
 
     @Override
-    public LoginResultVO login(@jakarta.validation.Valid LoginDTO dto) {
+    public LoginResultVO login(LoginDTO dto) {
         return authService.login(dto);
     }
 
     @Override
-    public LoginResultVO registerByPhone(@jakarta.validation.Valid PhoneRegisterDTO dto) {
+    public LoginResultVO registerByPhone(PhoneRegisterDTO dto) {
         return authService.registerByPhone(dto);
     }
 
     @Override
-    public LoginResultVO loginByPhone(@jakarta.validation.Valid PhoneLoginDTO dto) {
+    public LoginResultVO loginByPhone(PhoneLoginDTO dto) {
         return authService.loginByPhone(dto);
     }
 
     @Override
-    public void resetPasswordByPhone(@jakarta.validation.Valid PhoneResetPasswordDTO dto) {
+    public void resetPasswordByPhone(PhoneResetPasswordDTO dto) {
         authService.resetPasswordByPhone(dto);
     }
 
@@ -69,7 +69,7 @@ public class AuthApiImpl implements AuthApi {
     }
 
     @Override
-    public void changePassword(@jakarta.validation.Valid ChangePasswordDTO dto) {
+    public void changePassword(ChangePasswordDTO dto) {
         authService.changePassword(dto);
     }
 }

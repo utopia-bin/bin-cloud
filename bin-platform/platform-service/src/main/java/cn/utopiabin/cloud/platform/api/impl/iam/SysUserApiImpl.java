@@ -30,12 +30,12 @@ public class SysUserApiImpl implements SysUserApi {
     private final SysUserService userService;
 
     @Override
-    public Long create(@jakarta.validation.Valid SysUserCreateDTO dto) {
+    public Long create(SysUserCreateDTO dto) {
         return userService.create(dto);
     }
 
     @Override
-    public void update(@jakarta.validation.Valid SysUserUpdateDTO dto) {
+    public void update(SysUserUpdateDTO dto) {
         userService.update(dto);
     }
 
@@ -45,7 +45,7 @@ public class SysUserApiImpl implements SysUserApi {
     }
 
     @Override
-    public void batchDelete(@jakarta.validation.Valid BatchDeleteDTO dto) {
+    public void batchDelete(BatchDeleteDTO dto) {
         userService.batchDelete(dto);
     }
 
@@ -60,7 +60,7 @@ public class SysUserApiImpl implements SysUserApi {
     }
 
     @Override
-    public PageResult<SysUserVO> page(@jakarta.validation.Valid SysUserPageQuery query) {
+    public PageResult<SysUserVO> page(SysUserPageQuery query) {
         return userService.page(query);
     }
 
@@ -70,7 +70,7 @@ public class SysUserApiImpl implements SysUserApi {
     }
 
     @Override
-    public void assignRoles(@jakarta.validation.Valid SysUserAssignRolesDTO dto) {
+    public void assignRoles(SysUserAssignRolesDTO dto) {
         userService.assignRoles(dto);
     }
 

@@ -30,12 +30,12 @@ public class SysRoleApiImpl implements SysRoleApi {
     private final SysRoleService roleService;
 
     @Override
-    public Long create(@jakarta.validation.Valid SysRoleCreateDTO dto) {
+    public Long create(SysRoleCreateDTO dto) {
         return roleService.create(dto);
     }
 
     @Override
-    public void update(@jakarta.validation.Valid SysRoleUpdateDTO dto) {
+    public void update(SysRoleUpdateDTO dto) {
         roleService.update(dto);
     }
 
@@ -45,7 +45,7 @@ public class SysRoleApiImpl implements SysRoleApi {
     }
 
     @Override
-    public void batchDelete(@jakarta.validation.Valid BatchDeleteDTO dto) {
+    public void batchDelete(BatchDeleteDTO dto) {
         roleService.batchDelete(dto);
     }
 
@@ -60,7 +60,7 @@ public class SysRoleApiImpl implements SysRoleApi {
     }
 
     @Override
-    public PageResult<SysRoleVO> page(@jakarta.validation.Valid SysRolePageQuery query) {
+    public PageResult<SysRoleVO> page(SysRolePageQuery query) {
         return roleService.page(query);
     }
 
@@ -70,7 +70,7 @@ public class SysRoleApiImpl implements SysRoleApi {
     }
 
     @Override
-    public void assignPermissions(@jakarta.validation.Valid SysRoleAssignPermissionsDTO dto) {
+    public void assignPermissions(SysRoleAssignPermissionsDTO dto) {
         roleService.assignPermissions(dto);
     }
 

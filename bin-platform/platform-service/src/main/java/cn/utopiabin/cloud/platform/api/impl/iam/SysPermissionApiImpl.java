@@ -6,8 +6,6 @@ import cn.utopiabin.cloud.platform.model.dto.iam.SysPermissionCreateDTO;
 import cn.utopiabin.cloud.platform.model.dto.iam.SysPermissionUpdateDTO;
 import cn.utopiabin.cloud.platform.model.vo.iam.SysPermissionVO;
 import cn.utopiabin.cloud.platform.service.iam.SysPermissionService;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.springframework.validation.annotation.Validated;
@@ -22,25 +20,25 @@ public class SysPermissionApiImpl implements SysPermissionApi {
 
     @Override
     @RequirePermission("platform:permission:create")
-    public Long create(@Valid SysPermissionCreateDTO dto) {
+    public Long create(SysPermissionCreateDTO dto) {
         return permissionService.create(dto);
     }
 
     @Override
     @RequirePermission("platform:permission:update")
-    public void update(@Valid SysPermissionUpdateDTO dto) {
+    public void update(SysPermissionUpdateDTO dto) {
         permissionService.update(dto);
     }
 
     @Override
     @RequirePermission("platform:permission:delete")
-    public void remove(@NotNull Long id) {
+    public void remove(Long id) {
         permissionService.remove(id);
     }
 
     @Override
     @RequirePermission("platform:permission:read")
-    public SysPermissionVO get(@NotNull Long id) {
+    public SysPermissionVO get(Long id) {
         return permissionService.get(id);
     }
 

@@ -6,6 +6,7 @@ import cn.utopiabin.cloud.platform.model.vo.iam.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -22,16 +23,16 @@ import java.util.List;
 public interface SysMenuApi {
 
     @Operation(summary = "新增菜单", description = "上级菜单不能是自身")
-    Long create(@Parameter(description = "菜单新增参数", required = true) SysMenuCreateDTO dto);
+    Long create(@Parameter(description = "菜单新增参数", required = true) @Valid SysMenuCreateDTO dto);
 
     @Operation(summary = "编辑菜单", description = "按ID编辑菜单信息")
-    void update(@Parameter(description = "菜单编辑参数", required = true) SysMenuUpdateDTO dto);
+    void update(@Parameter(description = "菜单编辑参数", required = true) @Valid SysMenuUpdateDTO dto);
 
     @Operation(summary = "删除菜单", description = "存在子级菜单时不可删除，同时清除关联的角色菜单记录")
     void remove(@Parameter(description = "菜单ID", required = true) Long id);
 
     @Operation(summary = "批量删除菜单", description = "批量删除菜单（需确保无子级）")
-    void batchDelete(@Parameter(description = "批量删除参数", required = true) BatchDeleteDTO dto);
+    void batchDelete(@Parameter(description = "批量删除参数", required = true) @Valid BatchDeleteDTO dto);
 
     @Operation(summary = "查询菜单详情")
     SysMenuVO get(@Parameter(description = "菜单ID", required = true) Long id);
