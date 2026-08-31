@@ -19,6 +19,9 @@ import lombok.NoArgsConstructor;
 @Schema(description = "系统角色")
 public class SysRole extends BaseEntity {
 
+    @Schema(description = "角色所属租户应用实例；原IAM接口固定为平台壳实例")
+    private Long tenantApplicationId;
+
     /**
      * 角色名称
      */

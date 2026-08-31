@@ -34,6 +34,9 @@ class TenantProvisioningServiceTest {
         jdbc.execute("CREATE TABLE sys_permission(id BIGINT PRIMARY KEY, tenant_id BIGINT, code VARCHAR(100), available INT DEFAULT 1, is_delete INT DEFAULT 0)");
         jdbc.execute("CREATE TABLE sys_user_role(id BIGINT PRIMARY KEY, tenant_id BIGINT, user_id BIGINT REFERENCES sys_user(id), role_id BIGINT REFERENCES sys_role(id))");
         jdbc.execute("CREATE TABLE sys_role_permission(id BIGINT PRIMARY KEY, tenant_id BIGINT, role_id BIGINT REFERENCES sys_role(id), permission_id BIGINT REFERENCES sys_permission(id))");
+        jdbc.execute("CREATE TABLE sys_tenant_application(id BIGINT PRIMARY KEY, tenant_id BIGINT, application_id BIGINT, status VARCHAR(16), access_policy VARCHAR(16), opened_at TIMESTAMP, is_delete INT DEFAULT 0)");
+        for (String table : java.util.List.of("sys_role", "sys_permission", "sys_user_role", "sys_role_permission")) jdbc.execute("ALTER TABLE " + table + " ADD application_id BIGINT DEFAULT 1");
+        for (String table : java.util.List.of("sys_role", "sys_user_role", "sys_role_permission")) jdbc.execute("ALTER TABLE " + table + " ADD tenant_application_id BIGINT");
         jdbc.update("INSERT INTO sys_tenant(id) VALUES(1),(2)");
         int id = 100;
         for (String code : TenantProvisioningService.ADMIN_PERMISSIONS) {

@@ -21,7 +21,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.*;
 
 class JwtAuthFilterTest {
 
@@ -72,7 +73,7 @@ class JwtAuthFilterTest {
     void authenticatedRequestCarriesVerifiableGatewayContext() {
         var filter = filter();
         String token = token();
-        var request = MockServerHttpRequest.get("/users/me")
+        var request = MockServerHttpRequest.get("/admin/users/me")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .header(CommonConstants.HEADER_USER_ID, "forged")
                 .build();
@@ -97,6 +98,29 @@ class JwtAuthFilterTest {
                 Duration.ofSeconds(30)));
     }
 
+    @Test
+    void platformTokenCannotCallApplicationApi() {
+        var exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/open/application/profile").header(HttpHeaders.AUTHORIZATION,"Bearer " + token()));
+        filter().filter(exchange, current -> { fail("wrong audience reached downstream"); return Mono.empty(); }).block();
+        assertEquals(401,exchange.getResponse().getStatusCode().value());
+    }
+    @Test
+    void revokedSessionFailsClosed() {
+        var config = new GatewayConfig(); config.setJwtSecret(JWT_SECRET); config.setTokenBlacklistEnabled(false);
+        var context = new GatewayContextProperties(); context.setSigningSecret(CONTEXT_SECRET);
+        var sessions = mock(ApplicationSessionValidator.class); when(sessions.valid(anyString(),anyString())).thenReturn(Mono.just(false));
+        var filter = new JwtAuthFilter(config,context,mock(ReactiveRedisTemplate.class),sessions);
+        var exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/admin/users").header(HttpHeaders.AUTHORIZATION,"Bearer " + token()));
+        filter.filter(exchange,current -> { fail("revoked session reached downstream"); return Mono.empty(); }).block();
+        assertEquals(401,exchange.getResponse().getStatusCode().value());
+    }
+    @Test
+    void internalSessionProbeCannotBeReachedThroughGateway() {
+        var exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/platform/internal/sso/validate"));
+        filter().filter(exchange,current -> { fail("internal endpoint exposed"); return Mono.empty(); }).block();
+        assertNotNull(exchange.getResponse().getStatusCode());
+    }
+
     @SuppressWarnings("unchecked")
     private JwtAuthFilter filter() {
         var gatewayConfig = new GatewayConfig();
@@ -104,12 +128,16 @@ class JwtAuthFilterTest {
         gatewayConfig.setTokenBlacklistEnabled(false);
         var contextProperties = new GatewayContextProperties();
         contextProperties.setSigningSecret(CONTEXT_SECRET);
-        return new JwtAuthFilter(gatewayConfig, contextProperties, mock(ReactiveRedisTemplate.class));
+        var sessions = mock(ApplicationSessionValidator.class);
+        when(sessions.valid(anyString(), anyString())).thenReturn(Mono.just(true));
+        return new JwtAuthFilter(gatewayConfig, contextProperties, mock(ReactiveRedisTemplate.class), sessions);
     }
 
     private String token() {
         long now = System.currentTimeMillis();
         return Jwts.builder()
+                .audience().add("platform-console").and()
+                .claim("sid", "test-session")
                 .claim("userId", "10")
                 .claim("username", "alice")
                 .claim("tenantId", "7")

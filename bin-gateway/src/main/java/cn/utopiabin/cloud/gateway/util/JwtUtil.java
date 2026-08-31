@@ -51,6 +51,8 @@ public final class JwtUtil {
                     .getPayload();
 
             JwtPayload payload = new JwtPayload();
+            payload.setAudience(claims.getAudience()!=null && claims.getAudience().size()==1 ? claims.getAudience().iterator().next() : null);
+            payload.setSessionId(claims.get("sid",String.class));
             payload.setUserId(claims.get("userId", String.class));
             payload.setUsername(claims.get("username", String.class));
             payload.setTenantId(claims.get("tenantId", String.class));

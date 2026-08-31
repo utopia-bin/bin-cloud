@@ -13,10 +13,10 @@ public final class CacheConstants {
     }
 
     /** 全量菜单树缓存名 */
-    public static final String MENU_TREE = "menu:tree";
+    public static final String MENU_TREE = "application:platform-console:v2:menu:tree";
 
     /** 用户权限缓存名前缀 */
-    public static final String USER_PERM = "user:perm";
+    public static final String USER_PERM = "application:platform-console:v2:user:perm";
 
     /**
      * 构建用户权限缓存 Key

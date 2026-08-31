@@ -20,6 +20,7 @@ public class SysRolePermissionRepository
         saveBatch(permissionIds.stream().distinct().map(permissionId -> {
             var relation = new SysRolePermission();
             relation.setTenantId(tenantId);
+            relation.setTenantApplicationId(tenantId);
             relation.setRoleId(roleId);
             relation.setPermissionId(permissionId);
             return relation;

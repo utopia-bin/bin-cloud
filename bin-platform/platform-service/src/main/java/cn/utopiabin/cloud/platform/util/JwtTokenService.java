@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
@@ -39,6 +38,21 @@ import java.util.List;
 public class JwtTokenService {
 
     private final JwtTokenProperties properties;
+
+    public String generateScoped(String userId,String username,String tenantId,List<String> roles,
+                                 String audience,String instance,String sid,int credentialVersion,long ttl) {
+        long now=System.currentTimeMillis();
+        return Jwts.builder().subject(userId).claim("userId",userId).claim("username",username)
+                .claim("tenantId",tenantId).claim("roles",roles).audience().add(audience).and()
+                .claim("tenantApplicationId",instance).claim("sid",sid).claim("credentialVersion",credentialVersion)
+                .id(java.util.UUID.randomUUID().toString()).issuedAt(new Date(now)).expiration(new Date(now+ttl*1000))
+                .signWith(getKey()).compact();
+    }
+
+    public io.jsonwebtoken.Claims claims(String token) {
+        try { return Jwts.parser().verifyWith(getKey()).build().parseSignedClaims(token).getPayload(); }
+        catch (Exception e) { throw new cn.utopiabin.cloud.common.exception.BizException(401,"Token无效或已过期，请重新登录"); }
+    }
 
     /**
      * 构建 HMAC 签名密钥

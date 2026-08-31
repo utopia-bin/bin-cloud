@@ -20,6 +20,14 @@ public final class GatewayConstants {
 
     /** 无需鉴权的路径集合 */
     public static final Set<String> WHITE_PATHS = Set.of(
+            "/admin/sso/token",
+            "/admin/sso/refresh",
+            // These BFF endpoints validate their own HttpOnly session, CSRF token and application JWT.
+            "/open/workbench/start",
+            "/open/workbench/callback",
+            "/open/workbench/profile",
+            "/open/workbench/execute",
+            "/open/workbench/logout",
             "/auth/login",
             "/auth/phone/register",
             "/auth/phone/login",

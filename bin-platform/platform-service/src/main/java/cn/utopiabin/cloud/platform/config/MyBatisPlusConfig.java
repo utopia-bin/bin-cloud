@@ -32,6 +32,7 @@ public class MyBatisPlusConfig {
         var interceptor = new MybatisPlusInterceptor();
         // 1. 多租户 SQL 隔离 (必须在分页插件之前)
         interceptor.addInnerInterceptor(new TenantLineInnerInterceptor(tenantLineHandler));
+        interceptor.addInnerInterceptor(new TenantLineInnerInterceptor(new ConsoleApplicationLineHandler()));
         // 2. @Version 生成的更新 SQL 依赖此插件提供 MP_OPTLOCK_VERSION_ORIGINAL。
         interceptor.addInnerInterceptor(new OptimisticLockerInnerInterceptor());
         // 3. 分页插件最后执行

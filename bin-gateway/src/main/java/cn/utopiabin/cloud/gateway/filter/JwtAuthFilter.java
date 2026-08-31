@@ -51,6 +51,7 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
     private final GatewayConfig gatewayConfig;
     private final GatewayContextProperties gatewayContextProperties;
     private final ReactiveRedisTemplate<String, String> reactiveRedisTemplate;
+    private final ApplicationSessionValidator sessionValidator;
     private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
 
     @Override
@@ -58,6 +59,7 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
         // 所有入口先移除客户端可伪造的内部身份头，白名单请求也不能保留这些头。
         ServerWebExchange sanitizedExchange = removeUntrustedIdentityHeaders(exchange);
         String path = sanitizedExchange.getRequest().getURI().getPath();
+        if (path.startsWith("/platform/internal/") || path.startsWith("/internal/")) return unauthorized(sanitizedExchange,"内部接口不可通过公共网关访问");
 
         // 1. 白名单路径直接放行
         if (isWhitePath(path)) {
@@ -84,6 +86,12 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
                                 if (payload == null) {
                                     return unauthorized(sanitizedExchange, "Token 无效或已过期");
                                 }
+                                String audience = expectedAudience(sanitizedExchange, path);
+                                if (audience==null || !audience.equals(payload.getAudience()) || StrUtil.isBlank(payload.getSessionId())) {
+                                    return unauthorized(sanitizedExchange,"Token不属于目标应用或为旧登录态，请重新登录");
+                                }
+                                return sessionValidator.valid(token,audience).flatMap(valid -> {
+                                if (!valid) return unauthorized(sanitizedExchange,"会话已失效或会话校验服务不可用");
 
                                 // 5. 将用户信息注入请求头传递给下游
                                 String roles = payload.getRoles() != null
@@ -105,6 +113,7 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
                                 log.debug("JWT 鉴权通过: userId={}, tenantId={}, path={}",
                                         payload.getUserId(), payload.getTenantId(), path);
                                 return chain.filter(sanitizedExchange.mutate().request(modifiedRequest).build());
+                                });
                             })
                             // 捕获 JWT 解析过程中的任何异常, 统一返回 401 而非 500
                             .onErrorResume(e -> {
@@ -127,6 +136,15 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
                 })
                 .build();
         return exchange.mutate().request(request).build();
+    }
+
+    private String expectedAudience(ServerWebExchange exchange,String path) {
+        if(path.startsWith("/admin/") || path.startsWith("/platform/")) return "platform-console";
+        if(path.startsWith("/open/")) return "learning-workbench";
+        org.springframework.cloud.gateway.route.Route route = exchange.getAttribute(
+                org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR);
+        Object configured=route==null?null:route.getMetadata().get("applicationAudience");
+        return configured instanceof String text && !text.isBlank()?text:null;
     }
 
     /**

@@ -25,4 +25,7 @@ public abstract class LinkEntity extends JsonSerializable {
 
     /** 租户 ID */
     private Long tenantId;
+
+    @io.swagger.v3.oas.annotations.media.Schema(description = "授权关系所属租户应用实例")
+    private Long tenantApplicationId;
 }

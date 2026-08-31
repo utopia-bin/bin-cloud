@@ -122,7 +122,7 @@ public class OperateLogAspect {
 
         operateLogService.asyncRecord(
                 operateLog.module(), operateLog.action(), operateLog.type().name(),
-                method, params, success, errorMsg, cost, userId, username, tenantId);
+                method, params, success, errorMsg, cost, userId, username, tenantId, org.slf4j.MDC.get("traceId"));
     }
 
     /**

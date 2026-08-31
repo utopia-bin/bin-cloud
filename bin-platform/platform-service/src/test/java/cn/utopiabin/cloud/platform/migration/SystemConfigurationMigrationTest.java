@@ -32,7 +32,7 @@ class SystemConfigurationMigrationTest {
     void migrationsCoverEveryMappedEntityAndItsPersistentFields() throws Exception {
         var resolver = new PathMatchingResourcePatternResolver();
         var tables = new HashMap<String, Set<String>>();
-        var create = Pattern.compile("(?is)CREATE TABLE IF NOT EXISTS\\s+(\\w+)\\s*\\((.*?)\\)\\s*ENGINE=");
+        var create = Pattern.compile("(?is)CREATE TABLE (?:IF NOT EXISTS\\s+)?\\s*(\\w+)\\s*\\((.*?)\\)\\s*ENGINE=");
         var column = Pattern.compile("(?m)^\\s+(\\w+)\\s+\\w+");
         for (var resource : resolver.getResources("classpath*:db/migration/V*__*.sql")) {
             var matcher = create.matcher(resource.getContentAsString(StandardCharsets.UTF_8));
@@ -41,6 +41,15 @@ class SystemConfigurationMigrationTest {
                 var fields = column.matcher(matcher.group(2));
                 while (fields.find()) columns.add(fields.group(1));
                 tables.put(matcher.group(1), columns);
+            }
+        }
+        var alter = Pattern.compile("(?is)ALTER TABLE\\s+(\\w+)\\s+([^;]+)");
+        var added = Pattern.compile("(?i)ADD\\s+(?:COLUMN\\s+)?(\\w+)\\s+(?:BIGINT|INT|VARCHAR|DATETIME|TINYINT)\\b");
+        for (var resource : resolver.getResources("classpath*:db/migration/V*__*.sql")) {
+            var statements = alter.matcher(resource.getContentAsString(StandardCharsets.UTF_8));
+            while (statements.find()) {
+                var fields = added.matcher(statements.group(2));
+                while (fields.find()) tables.computeIfAbsent(statements.group(1), key -> new HashSet<>()).add(fields.group(1));
             }
         }
         int checked = 0;

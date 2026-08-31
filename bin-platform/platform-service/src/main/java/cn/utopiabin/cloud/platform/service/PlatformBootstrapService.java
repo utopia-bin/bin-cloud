@@ -38,12 +38,12 @@ public class PlatformBootstrapService {
                 ON DUPLICATE KEY UPDATE code = code
                 """, IdWorker.getId());
         var permission = jdbc.queryForMap("""
-                SELECT id, tenant_id, available, is_delete FROM sys_permission WHERE code = '*' FOR UPDATE
+                SELECT id, tenant_id, available, is_delete FROM sys_permission WHERE application_id=1 AND code = '*' FOR UPDATE
                 """);
 
         // 角色作为一次性标记：包括禁用/软删除的角色，避免修改配置后意外创建第二个超级管理员。
         var existingRoles = jdbc.queryForList("""
-                SELECT id FROM sys_role WHERE code = ? FOR UPDATE
+                SELECT id FROM sys_role WHERE application_id=1 AND code = ? FOR UPDATE
                 """, PlatformConstants.SUPER_ADMIN_ROLE_CODE);
         if (!existingRoles.isEmpty()) {
             log.info("平台管理员初始化已跳过：已存在 super_admin 角色，未修改任何账号、密码或授权；请关闭 PLATFORM_BOOTSTRAP_ENABLED");
@@ -92,6 +92,7 @@ public class PlatformBootstrapService {
             throw new IllegalStateException("目标租户已存在同名账号，初始化拒绝重置密码或提升权限；请人工核对账号");
         }
 
+        cn.utopiabin.cloud.platform.service.application.TenantApplicationService.ensureConsole(jdbc, tenantId);
         long userId = IdWorker.getId();
         long roleId = IdWorker.getId();
         jdbc.update("""
@@ -99,13 +100,13 @@ public class PlatformBootstrapService {
                 VALUES (?, ?, ?, ?, '平台管理员')
                 """, userId, tenantId, username, passwordEncoder.encode(password));
         jdbc.update("""
-                INSERT INTO sys_role (id, tenant_id, name, code, data_scope)
-                VALUES (?, ?, '超级管理员', ?, 1)
-                """, roleId, tenantId, PlatformConstants.SUPER_ADMIN_ROLE_CODE);
-        jdbc.update("INSERT INTO sys_user_role (id, tenant_id, user_id, role_id) VALUES (?, ?, ?, ?)",
-                IdWorker.getId(), tenantId, userId, roleId);
-        jdbc.update("INSERT INTO sys_role_permission (id, tenant_id, role_id, permission_id) VALUES (?, ?, ?, ?)",
-                IdWorker.getId(), tenantId, roleId, permission.get("id"));
+                INSERT INTO sys_role (id, tenant_id, tenant_application_id, name, code, data_scope)
+                VALUES (?, ?, ?, '超级管理员', ?, 1)
+                """, roleId, tenantId, tenantId, PlatformConstants.SUPER_ADMIN_ROLE_CODE);
+        jdbc.update("INSERT INTO sys_user_role (id, tenant_id, tenant_application_id, user_id, role_id) VALUES (?, ?, ?, ?, ?)",
+                IdWorker.getId(), tenantId, tenantId, userId, roleId);
+        jdbc.update("INSERT INTO sys_role_permission (id, tenant_id, tenant_application_id, role_id, permission_id) VALUES (?, ?, ?, ?, ?)",
+                IdWorker.getId(), tenantId, tenantId, roleId, permission.get("id"));
 
         // 为现有前端提供导航和权限投影，只补不存在的路径，不覆盖已有菜单配置。
         menu("租户管理", "/tenant", "OfficeBuilding", "platform:tenant:read", 10);
@@ -122,7 +123,7 @@ public class PlatformBootstrapService {
 
     private void menu(String name, String path, String icon, String permission, int sort) {
         // 初始化已由全局权限行锁串行化；分开查询和插入，避免 MySQL 的同表子查询写入限制。
-        if (!jdbc.queryForList("SELECT id FROM sys_menu WHERE path = ? FOR UPDATE", path).isEmpty()) {
+        if (!jdbc.queryForList("SELECT id FROM sys_menu WHERE application_id=1 AND path = ? FOR UPDATE", path).isEmpty()) {
             return;
         }
         jdbc.update("""

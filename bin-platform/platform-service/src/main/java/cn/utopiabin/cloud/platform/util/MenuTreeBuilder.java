@@ -40,7 +40,7 @@ public final class MenuTreeBuilder {
                 .collect(Collectors.groupingBy(SysMenuTreeVO::getParentId));
 
         // 从根节点开始递归构建子树
-        List<SysMenuTreeVO> roots = groupedByParent.getOrDefault(ROOT_PARENT_ID, List.of());
+        List<SysMenuTreeVO> roots = new java.util.ArrayList<>(groupedByParent.getOrDefault(ROOT_PARENT_ID, List.of()));
         roots.forEach(root -> fillChildren(root, groupedByParent));
 
         // 根节点按 sort 排序

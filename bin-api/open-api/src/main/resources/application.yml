@@ -1,5 +1,17 @@
 server:
   port: 8200
+  servlet:
+    session:
+      timeout: 8h
+      cookie:
+        name: BIN_WORKBENCH_SESSION
+        http-only: true
+        same-site: lax
+        secure: false
+
+workbench:
+  public-base-url: ${WORKBENCH_PUBLIC_BASE_URL:http://localhost:5173}
+  client-secret: ${WORKBENCH_SSO_SECRET:}
 
 spring:
   application:

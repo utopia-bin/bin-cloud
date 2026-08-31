@@ -47,9 +47,11 @@ public class SysOperateLogService {
     @Async("platformAsyncExecutor")
     public void asyncRecord(String module, String action, String type, String method, String params,
                             boolean success, String errorMsg, long costMs,
-                            String userId, String username, String tenantId) {
+                            String userId, String username, String tenantId, String traceId) {
         try {
             var entity = new SysOperateLog();
+            entity.setApplicationId(1L);
+            entity.setTraceId(traceId == null ? "" : traceId.substring(0, Math.min(64, traceId.length())));
             entity.setModule(module);
             entity.setAction(action);
             entity.setType(type);
@@ -64,6 +66,7 @@ public class SysOperateLogService {
             if (tenantId != null && !tenantId.isBlank()) {
                 try {
                     entity.setTenantId(Long.valueOf(tenantId.trim()));
+                    entity.setTenantApplicationId(Long.valueOf(tenantId.trim()));
                 } catch (NumberFormatException ignored) {
                     // 租户 ID 非数字时留空
                 }

@@ -15,6 +15,12 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 public class JwtPayload extends JsonSerializable {
 
+    @io.swagger.v3.oas.annotations.media.Schema(description="唯一目标应用受众编码")
+    private String audience;
+
+    @io.swagger.v3.oas.annotations.media.Schema(description="可撤销的登录会话ID")
+    private String sessionId;
+
     /**
      * 用户 ID
      */

@@ -36,3 +36,13 @@ CREATE TABLE sys_menu (
     path VARCHAR(200) NOT NULL, icon VARCHAR(100) NOT NULL,
     permission VARCHAR(100) NOT NULL, sort INT NOT NULL
 );
+
+CREATE TABLE sys_tenant_application(id BIGINT PRIMARY KEY, tenant_id BIGINT NOT NULL, application_id BIGINT NOT NULL, status VARCHAR(16), access_policy VARCHAR(16), opened_at TIMESTAMP, is_delete INT DEFAULT 0, UNIQUE(tenant_id,application_id));
+ALTER TABLE sys_role ADD application_id BIGINT DEFAULT 1;
+ALTER TABLE sys_permission ADD application_id BIGINT DEFAULT 1;
+ALTER TABLE sys_menu ADD application_id BIGINT DEFAULT 1;
+ALTER TABLE sys_user_role ADD application_id BIGINT DEFAULT 1;
+ALTER TABLE sys_role_permission ADD application_id BIGINT DEFAULT 1;
+ALTER TABLE sys_role ADD tenant_application_id BIGINT;
+ALTER TABLE sys_user_role ADD tenant_application_id BIGINT;
+ALTER TABLE sys_role_permission ADD tenant_application_id BIGINT;

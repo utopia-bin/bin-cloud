@@ -62,6 +62,9 @@ class AuthServiceTest {
     @Mock
     private SmsService smsService;
 
+    @Mock
+    private cn.utopiabin.cloud.platform.service.application.SsoService ssoService;
+
     @InjectMocks
     private AuthService authService;
 
@@ -157,7 +160,7 @@ class AuthServiceTest {
         when(permissionService.getUserPermissions(10L)).thenReturn(
                 new UserPermissionVO(java.util.List.of(), java.util.List.of(), java.util.List.of(),
                         java.util.List.of(), java.util.List.of(), java.util.List.of()));
-        when(jwtTokenService.generate("10", "13800138000", "7", java.util.List.of()))
+        when(ssoService.platformLogin(any(SysUser.class), any()))
                 .thenReturn("token");
 
         var result = authService.registerByPhone(dto);

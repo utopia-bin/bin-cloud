@@ -75,6 +75,7 @@ public class SysRoleService {
         }
 
         var role = dto.copyTo(SysRole.class);
+        role.setTenantApplicationId(Long.valueOf(cn.utopiabin.cloud.common.context.UserContextHolder.getTenantId()));
         role.setName(dto.getName().trim());
         role.setCode(code);
         role.setDataScope(Optional.ofNullable(dto.getDataScope()).orElse(1));

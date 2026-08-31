@@ -16,6 +16,13 @@ import java.util.Date;
 @EqualsAndHashCode(callSuper = false)
 @Schema(description = "操作日志")
 public class SysOperateLogVO extends JsonSerializable {
+    @Schema(description = "执行操作的应用，管理端固定为platform-console")
+    private Long applicationId;
+    @Schema(description = "操作人所在租户的控制台实例")
+    private Long tenantApplicationId;
+    @Schema(description = "调用链追踪标识")
+    private String traceId;
+
 
     @Schema(description = "日志ID")
     private Long id;

@@ -30,6 +30,7 @@ public class SysUserRoleRepository extends ServiceImpl<SysUserRoleMapper, SysUse
         var list = roleIds.stream().map(roleId -> {
             var ur = new SysUserRole();
             ur.setTenantId(tenantId);
+            ur.setTenantApplicationId(tenantId);
             ur.setUserId(userId);
             ur.setRoleId(roleId);
             return ur;

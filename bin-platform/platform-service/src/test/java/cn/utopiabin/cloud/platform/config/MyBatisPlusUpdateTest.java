@@ -28,7 +28,7 @@ class MyBatisPlusUpdateTest {
                 + ";MODE=MySQL;DB_CLOSE_DELAY=-1", "sa", "");
         jdbc = new JdbcTemplate(source);
         jdbc.execute("""
-                CREATE TABLE sys_user (
+                CREATE TABLE sys_user (credential_version INT DEFAULT 0,
                     id BIGINT PRIMARY KEY, tenant_id BIGINT NOT NULL,
                     username VARCHAR(50), password VARCHAR(100), real_name VARCHAR(50),
                     phone VARCHAR(20), email VARCHAR(100), gender INT, available BOOLEAN,
@@ -42,6 +42,9 @@ class MyBatisPlusUpdateTest {
         var configuration = new MybatisConfiguration();
         configuration.setMapUnderscoreToCamelCase(true);
         configuration.addMapper(SysUserMapper.class);
+        configuration.addMapper(cn.utopiabin.cloud.platform.mapper.iam.SysPermissionMapper.class);
+        jdbc.execute("CREATE TABLE sys_permission(id BIGINT PRIMARY KEY,application_id BIGINT,tenant_id BIGINT,name VARCHAR(50),code VARCHAR(100),description VARCHAR(200),available INT DEFAULT 1,sort INT DEFAULT 10,version INT DEFAULT 0,is_delete INT DEFAULT 0,gmt_create TIMESTAMP,gmt_modify TIMESTAMP,create_user VARCHAR(64),modify_user VARCHAR(64))");
+        jdbc.update("INSERT INTO sys_permission(id,application_id,name,code) VALUES(1,1,'Console','read'),(2,2,'Other app','read')");
         var factory = new MybatisSqlSessionFactoryBean();
         factory.setDataSource(source);
         factory.setConfiguration(configuration);
@@ -63,6 +66,18 @@ class MyBatisPlusUpdateTest {
         context.setTenantId(tenantId);
         context.setUserId("99");
         UserContextHolder.set(context);
+    }
+
+    @Test
+    void consoleMapperNeverReadsOrMutatesAnotherApplicationEvenDuringLogin() {
+        cn.utopiabin.cloud.platform.tenant.TenantIgnoreContext.enable();
+        try (var session = sessions.openSession(true)) {
+            var mapper = session.getMapper(cn.utopiabin.cloud.platform.mapper.iam.SysPermissionMapper.class);
+            assertThat(mapper.selectList(null)).extracting(cn.utopiabin.cloud.platform.entity.iam.SysPermission::getId).containsExactly(1L);
+            assertThat(mapper.selectById(2L)).isNull();
+            assertThat(mapper.deleteById(2L)).isZero();
+            assertThat(jdbc.queryForObject("SELECT is_delete FROM sys_permission WHERE id=2",Integer.class)).isZero();
+        } finally { cn.utopiabin.cloud.platform.tenant.TenantIgnoreContext.clear(); }
     }
 
     @Test

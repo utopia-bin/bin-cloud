@@ -82,6 +82,8 @@ public class AuthService {
     private final LoginSecurityProperties loginSecurityProperties;
     private final PasswordValidator passwordValidator;
     private final SmsService smsService;
+    private final cn.utopiabin.cloud.platform.service.application.SsoService ssoService;
+    private final cn.utopiabin.cloud.platform.service.application.ApplicationRevocationService sessionRevocations;
 
     public PasswordPolicyVO passwordPolicy() {
         return passwordValidator.policy();
@@ -226,8 +228,10 @@ public class AuthService {
 
         passwordValidator.validate(dto.getNewPassword());
         smsService.verifyAndConsume(tenant.getId(), phone, SmsScene.RESET_PASSWORD, dto.getCode());
+        user.setCredentialVersion(java.util.Optional.ofNullable(user.getCredentialVersion()).orElse(0) + 1);
         user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
-        userRepository.updateById(user);
+        if (!userRepository.updateById(user)) throw new BizException(409, "用户已变化，请重新操作");
+        sessionRevocations.user(tenant.getId(), user.getId(), "PASSWORD_CHANGED");
         log.info("手机号重置密码成功: tenantId={}, userId={}", tenant.getId(), user.getId());
     }
 
@@ -244,6 +248,7 @@ public class AuthService {
     public void logout(String token) {
         var ctx = UserContextHolder.get();
         if (StrUtil.isNotBlank(token)) {
+            ssoService.logout(token, true);
             addToBlacklist(token);
         }
         if (ctx != null) {
@@ -313,7 +318,8 @@ public class AuthService {
      *
      * @param dto 修改密码参数 (原密码 + 新密码)
      */
-    @OperateLog(module = "认证管理", action = "修改密码", type = OperateType.AUTH)
+    @Transactional
+    @OperateLog(module = "认证管理", action = "修改密码", type = OperateType.AUTH, maskParams = true)
     public void changePassword(ChangePasswordDTO dto) {
         var ctx = requireUserContext();
 
@@ -328,8 +334,11 @@ public class AuthService {
         // 新密码强度校验
         passwordValidator.validate(dto.getNewPassword());
 
+        user.setCredentialVersion(java.util.Optional.ofNullable(user.getCredentialVersion()).orElse(0) + 1);
+
         user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
-        userRepository.updateById(user);
+        if (!userRepository.updateById(user)) throw new BizException(409, "用户已变化，请重新操作");
+        sessionRevocations.user(user.getTenantId(), userId, "PASSWORD_CHANGED");
         log.info("用户修改密码成功: userId={}", userId);
     }
 
@@ -408,11 +417,7 @@ public class AuthService {
         var roleCodes = perm.getRoles().stream()
                 .map(SysRoleVO::getCode)
                 .toList();
-        String token = jwtTokenService.generate(
-                String.valueOf(user.getId()),
-                user.getUsername(),
-                String.valueOf(user.getTenantId()),
-                roleCodes);
+        String token = ssoService.platformLogin(user, roleCodes);
 
         var result = new LoginResultVO();
         result.setToken(token);

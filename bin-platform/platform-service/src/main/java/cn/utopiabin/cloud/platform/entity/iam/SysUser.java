@@ -31,6 +31,9 @@ public class SysUser extends BaseEntity {
     @Schema(description = "密码（BCrypt加密）")
     private String password;
 
+    @Schema(description = "凭证版本，修改密码时递增以失效旧会话")
+    private Integer credentialVersion = 0;
+
     /**
      * 真实姓名
      */

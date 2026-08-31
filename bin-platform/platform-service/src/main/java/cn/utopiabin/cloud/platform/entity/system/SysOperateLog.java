@@ -22,6 +22,13 @@ import java.util.Date;
 @TableName("sys_operate_log")
 @Schema(description = "操作日志")
 public class SysOperateLog extends BaseEntity {
+    @Schema(description = "执行操作的应用，管理端固定为platform-console")
+    private Long applicationId;
+    @Schema(description = "操作人所在租户的控制台实例")
+    private Long tenantApplicationId;
+    @Schema(description = "调用链追踪标识")
+    private String traceId;
+
 
     /**
      * 业务模块 (如 "用户管理")

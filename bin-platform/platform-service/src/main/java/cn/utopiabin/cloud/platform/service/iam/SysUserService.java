@@ -143,6 +143,7 @@ public class SysUserService {
         // 编辑时携带新密码才校验强度并更新
         if (StrUtil.isNotBlank(dto.getPassword())) {
             passwordValidator.validate(dto.getPassword());
+            user.setCredentialVersion(java.util.Optional.ofNullable(user.getCredentialVersion()).orElse(0) + 1);
             user.setPassword(passwordEncoder.encode(dto.getPassword()));
         }
 
@@ -285,6 +286,7 @@ public class SysUserService {
     public void resetPassword(Long userId, String newPassword) {
         var user = userRepository.getOrThrow(userId);
         passwordValidator.validate(newPassword);
+        user.setCredentialVersion(java.util.Optional.ofNullable(user.getCredentialVersion()).orElse(0) + 1);
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.updateById(user);
         log.info("重置用户密码: userId={}, operator={}", userId, UserContextHolder.getUsername());

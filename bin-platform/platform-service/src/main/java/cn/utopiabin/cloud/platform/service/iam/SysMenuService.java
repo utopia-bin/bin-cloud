@@ -56,6 +56,7 @@ public class SysMenuService {
         menu.setComponent(StrUtil.defaultIfBlank(dto.getComponent(), ""));
         menu.setIcon(StrUtil.defaultIfBlank(dto.getIcon(), ""));
         menu.setPermission(StrUtil.defaultIfBlank(dto.getPermission(), ""));
+        validateParent(menu);
         menuRepository.save(menu);
 
         TransactionAfterCommitExecutor.afterCommit(permissionService::evictAllUserPermissions);
@@ -85,6 +86,7 @@ public class SysMenuService {
         menu.setSort(Optional.ofNullable(dto.getSort()).orElse(menu.getSort()));
         menu.setVisible(Optional.ofNullable(dto.getVisible()).orElse(menu.getVisible()));
         menu.setAvailable(Optional.ofNullable(dto.getAvailable()).orElse(menu.getAvailable()));
+        validateParent(menu);
         if (!menuRepository.updateById(menu)) {
             throw new BizException(PlatformErrorCode.CONFLICT.getCode(), "菜单已被修改，请刷新后重试");
         }
@@ -117,6 +119,18 @@ public class SysMenuService {
         }
         menuRepository.removeByIds(dto.getIds());
         TransactionAfterCommitExecutor.afterCommit(permissionService::evictAllUserPermissions);
+    }
+
+    private void validateParent(SysMenu menu) {
+        var visited = new java.util.HashSet<Long>();
+        if (menu.getId() != null) visited.add(menu.getId());
+        Long parent = menu.getParentId();
+        while (parent != null && parent != 0) {
+            if (!visited.add(parent)) throw new BizException(400, "菜单上级存在循环引用");
+            var node = menuRepository.getOrThrow(parent);
+            if (Integer.valueOf(3).equals(node.getType())) throw new BizException(400, "按钮不能作为上级菜单");
+            parent = node.getParentId();
+        }
     }
 
     @RequirePermission("platform:menu:read")

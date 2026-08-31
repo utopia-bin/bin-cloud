@@ -56,7 +56,7 @@ class OperateLogAspectTest {
         when(call.proceed()).thenReturn(result);
         assertThat(aspect.around(call, annotation())).isSameAs(result);
         verify(logs).asyncRecord(eq("认证管理"), eq("用户登录"), eq("AUTH"), eq("AuthService.login"),
-                eq("1 args (masked)"), eq(true), isNull(), anyLong(), eq("42"), eq("test_user"), eq("9"));
+                eq("1 args (masked)"), eq(true), isNull(), anyLong(), eq("42"), eq("test_user"), eq("9"), isNull());
     }
 
     @Test
@@ -68,7 +68,7 @@ class OperateLogAspectTest {
         when(call.proceed()).thenThrow(failure);
         assertThatThrownBy(() -> aspect.around(call, annotation())).isSameAs(failure);
         verify(logs).asyncRecord(anyString(), anyString(), eq("AUTH"), anyString(), eq("1 args (masked)"),
-                eq(false), eq("业务错误码: 400"), anyLong(), isNull(), eq("test_user"), eq("9"));
+                eq(false), eq("业务错误码: 400"), anyLong(), isNull(), eq("test_user"), eq("9"), isNull());
     }
 
     @Test
@@ -77,7 +77,7 @@ class OperateLogAspectTest {
         when(call.proceed()).thenReturn("ok");
         doThrow(new IllegalStateException("audit unavailable")).when(logs).asyncRecord(
                 anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean(), nullable(String.class),
-                anyLong(), nullable(String.class), nullable(String.class), nullable(String.class));
+                anyLong(), nullable(String.class), nullable(String.class), nullable(String.class), nullable(String.class));
         assertThat(aspect.around(call, annotation())).isEqualTo("ok");
     }
 }
