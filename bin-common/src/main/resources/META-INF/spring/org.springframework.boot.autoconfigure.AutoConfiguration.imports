@@ -1,2 +1,3 @@
 cn.utopiabin.cloud.common.redis.RedisAutoConfiguration
 cn.utopiabin.cloud.common.context.UserContextAutoConfiguration
+cn.utopiabin.cloud.common.json.WebJsonAutoConfiguration

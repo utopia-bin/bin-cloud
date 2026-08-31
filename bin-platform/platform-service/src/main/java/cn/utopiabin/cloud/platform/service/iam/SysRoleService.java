@@ -63,6 +63,7 @@ public class SysRoleService {
     @Transactional(rollbackFor = Exception.class)
     @RequirePermission("platform:role:create")
     public Long create(SysRoleCreateDTO dto) {
+        validateDataScope(dto.getDataScope());
         var code = dto.getCode() == null ? "" : dto.getCode().trim();
         if (StrUtil.isBlank(code)) {
             throw new BizException(PlatformErrorCode.BAD_REQUEST.getCode(),
@@ -89,6 +90,7 @@ public class SysRoleService {
     @Transactional(rollbackFor = Exception.class)
     @RequirePermission("platform:role:update")
     public void update(SysRoleUpdateDTO dto) {
+        validateDataScope(dto.getDataScope());
         var role = roleRepository.getOrThrow(dto.getId());
         if (!java.util.Objects.equals(role.getVersion(), dto.getExpectedVersion())) {
             throw new BizException(PlatformErrorCode.ROLE_VERSION_CONFLICT.getCode(),
@@ -223,6 +225,10 @@ public class SysRoleService {
                     "权限不存在或已被禁用");
         }
 
+        Long operator = Long.valueOf(cn.utopiabin.cloud.common.context.UserContextHolder.getUserId());
+        if (permissions.stream().anyMatch(p -> !permissionService.hasPermission(operator, p.getCode()))) {
+            throw new BizException(403, "不能分配超出自身授权范围的权限");
+        }
         rolePermissionRepository.replace(role.getTenantId(), role.getId(), requestedIds);
         if (!roleRepository.updateById(role)) {
             throw new BizException(PlatformErrorCode.ROLE_VERSION_CONFLICT.getCode(),
@@ -242,6 +248,12 @@ public class SysRoleService {
     @RequirePermission("platform:role:read")
     public boolean existsByCode(String code) {
         return roleRepository.exists(SysRole::getCode, code);
+    }
+
+    private void validateDataScope(Integer scope) {
+        if (scope != null && scope != 1 && scope != 4) {
+            throw new BizException(400, "当前未启用部门组织，只支持全部或仅本人数据范围");
+        }
     }
 
     // ==================== 保护校验 ====================

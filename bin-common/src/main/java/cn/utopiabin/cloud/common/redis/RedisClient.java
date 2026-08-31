@@ -64,11 +64,11 @@ public class RedisClient {
     // ==================== 通用 Key 操作 ====================
 
     public boolean hasKey(String key) {
-        return redisTemplate.hasKey(key(key));
+        return Boolean.TRUE.equals(redisTemplate.hasKey(key(key)));
     }
 
     public boolean delete(String key) {
-        return redisTemplate.delete(key(key));
+        return Boolean.TRUE.equals(redisTemplate.delete(key(key)));
     }
 
     public long delete(Collection<String> keys) {
@@ -89,7 +89,8 @@ public class RedisClient {
 
     public long getExpire(String key, TimeUnit unit) {
         // Redis TTL 约定：-1 表示永久，-2 表示 key 不存在；流水线/事务的空结果按不存在处理。
-        return redisTemplate.getExpire(key(key), unit);
+        Long ttl = redisTemplate.getExpire(key(key), unit);
+        return ttl == null ? -2L : ttl;
     }
 
     public Long incr(String key, long delta) {
@@ -101,7 +102,8 @@ public class RedisClient {
     }
 
     public Set<String> keys(String pattern) {
-        return redisTemplate.keys(key(pattern));
+        Set<String> result = redisTemplate.keys(key(pattern));
+        return result == null ? Set.of() : result;
     }
 
     // ==================== String 操作 ====================

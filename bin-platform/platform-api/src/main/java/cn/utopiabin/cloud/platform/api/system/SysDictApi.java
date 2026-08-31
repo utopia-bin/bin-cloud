@@ -1,5 +1,7 @@
 package cn.utopiabin.cloud.platform.api.system;
 
+import cn.utopiabin.cloud.common.exception.BizException;
+
 import cn.utopiabin.cloud.common.model.vo.PageResult;
 import cn.utopiabin.cloud.platform.model.dto.system.*;
 import cn.utopiabin.cloud.platform.model.vo.system.*;
@@ -24,58 +26,58 @@ public interface SysDictApi {
     // ==================== 字典 CRUD ====================
 
     @Operation(summary = "新增字典", description = "字典名称与编码唯一性校验通过后新增")
-    void createDict(@Parameter(description = "字典新增参数", required = true) SysDictCreateDTO dto);
+    void createDict(@Parameter(description = "字典新增参数", required = true) SysDictCreateDTO dto) throws BizException;
 
     @Operation(summary = "编辑字典", description = "按ID编辑字典，编码变更时同步刷新缓存")
-    void updateDict(@Parameter(description = "字典编辑参数", required = true) SysDictUpdateDTO dto);
+    void updateDict(@Parameter(description = "字典编辑参数", required = true) SysDictUpdateDTO dto) throws BizException;
 
     @Operation(summary = "删除字典", description = "删除字典及其下所有字典项，并清除缓存")
-    void removeDict(@Parameter(description = "字典ID", required = true) Long id);
+    void removeDict(@Parameter(description = "字典ID", required = true) Long id) throws BizException;
 
     @Operation(summary = "查询字典详情")
-    SysDictVO getDict(@Parameter(description = "字典ID", required = true) Long id);
+    SysDictVO getDict(@Parameter(description = "字典ID", required = true) Long id) throws BizException;
 
     @Operation(summary = "分页查询字典")
-    PageResult<SysDictVO> pageDict(@Parameter(description = "分页查询条件", required = true) SysDictPageQuery query);
+    PageResult<SysDictVO> pageDict(@Parameter(description = "分页查询条件", required = true) SysDictPageQuery query) throws BizException;
 
     @Operation(summary = "列表查询字典")
-    List<SysDictVO> listDict(@Parameter(description = "列表查询条件") SysDictListQuery query);
+    List<SysDictVO> listDict(@Parameter(description = "列表查询条件") SysDictListQuery query) throws BizException;
 
     // ==================== 字典项 CRUD ====================
 
     @Operation(summary = "新增字典项", description = "同字典下名称与值唯一性校验通过后新增")
-    void createDictOption(@Parameter(description = "字典项新增参数", required = true) SysDictOptionsCreateDTO dto);
+    void createDictOption(@Parameter(description = "字典项新增参数", required = true) SysDictOptionsCreateDTO dto) throws BizException;
 
     @Operation(summary = "编辑字典项", description = "按ID编辑字典项，并刷新所属字典缓存")
-    void updateDictOption(@Parameter(description = "字典项编辑参数", required = true) SysDictOptionsUpdateDTO dto);
+    void updateDictOption(@Parameter(description = "字典项编辑参数", required = true) SysDictOptionsUpdateDTO dto) throws BizException;
 
     @Operation(summary = "删除字典项", description = "存在子级字典项时不可删除")
-    void removeDictOption(@Parameter(description = "字典项ID", required = true) Long id);
+    void removeDictOption(@Parameter(description = "字典项ID", required = true) Long id) throws BizException;
 
     @Operation(summary = "查询字典项详情")
-    SysDictOptionsVO getDictOption(@Parameter(description = "字典项ID", required = true) Long id);
+    SysDictOptionsVO getDictOption(@Parameter(description = "字典项ID", required = true) Long id) throws BizException;
 
     @Operation(summary = "分页查询字典项")
-    PageResult<SysDictOptionsVO> pageDictOption(@Parameter(description = "分页查询条件", required = true) SysDictOptionsPageQuery query);
+    PageResult<SysDictOptionsVO> pageDictOption(@Parameter(description = "分页查询条件", required = true) SysDictOptionsPageQuery query) throws BizException;
 
     // ==================== 缓存 ====================
 
     @Operation(summary = "获取字典缓存项列表", description = "按字典编码从缓存获取，缓存不存在则查库并回填")
-    List<SysDictOptionsItemVO> getDictItems(@Parameter(description = "字典编码", required = true) String dictCode);
+    List<SysDictOptionsItemVO> getDictItems(@Parameter(description = "字典编码", required = true) String dictCode) throws BizException;
 
     @Operation(summary = "刷新全部字典缓存", description = "清除所有字典相关缓存并重建")
-    void refreshDictCache();
+    void refreshDictCache() throws BizException;
 
     // ==================== 树形 ====================
 
     @Operation(summary = "获取字典树", description = "将指定字典的字典项按父子关系构建为树形结构")
-    List<SysDictOptionsTreeVO> getDictTree(@Parameter(description = "字典编码", required = true) String dictCode);
+    List<SysDictOptionsTreeVO> getDictTree(@Parameter(description = "字典编码", required = true) String dictCode) throws BizException;
 
     @Operation(summary = "获取可选父级字典项", description = "获取某字典下可作为父级的字典项列表，排除自身及其子孙")
     List<SysDictOptionsTreeVO> getOptionalParents(
             @Parameter(description = "字典ID", required = true) Long dictId,
-            @Parameter(description = "排除项ID（自身ID）") Long excludeId);
+            @Parameter(description = "排除项ID（自身ID）") Long excludeId) throws BizException;
 
     @Operation(summary = "获取多字典组合树", description = "以逗号分隔多个字典编码，返回各字典对应的树形数据")
-    List<SysDictOptionsMulTreeVO> getMulDictTree(@Parameter(description = "字典编码，逗号分隔", required = true) String codes);
+    List<SysDictOptionsMulTreeVO> getMulDictTree(@Parameter(description = "字典编码，逗号分隔", required = true) String codes) throws BizException;
 }

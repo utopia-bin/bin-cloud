@@ -1,5 +1,7 @@
 package cn.utopiabin.cloud.platform.api.auth;
 
+import cn.utopiabin.cloud.common.exception.BizException;
+
 import cn.utopiabin.cloud.platform.model.dto.auth.ChangePasswordDTO;
 import cn.utopiabin.cloud.platform.model.dto.auth.LoginDTO;
 import cn.utopiabin.cloud.platform.model.dto.auth.PhoneLoginDTO;
@@ -34,26 +36,26 @@ import java.util.List;
 public interface AuthApi {
 
     @Operation(summary = "账号密码登录", description = "验证租户编码、用户名和密码，签发JWT Token，返回用户信息、角色及菜单树")
-    LoginResultVO login(@Parameter(description = "登录参数", required = true) @Valid LoginDTO dto);
+    LoginResultVO login(@Parameter(description = "登录参数", required = true) @Valid LoginDTO dto) throws BizException;
 
     @Operation(summary = "手机号注册", description = "校验注册验证码并创建用户，注册成功后签发JWT Token")
-    LoginResultVO registerByPhone(@Valid PhoneRegisterDTO dto);
+    LoginResultVO registerByPhone(@Valid PhoneRegisterDTO dto) throws BizException;
 
     @Operation(summary = "手机号验证码登录", description = "校验登录验证码并签发JWT Token")
-    LoginResultVO loginByPhone(@Valid PhoneLoginDTO dto);
+    LoginResultVO loginByPhone(@Valid PhoneLoginDTO dto) throws BizException;
 
     @Operation(summary = "手机号重置密码", description = "校验重置密码验证码后更新密码")
-    void resetPasswordByPhone(@Valid PhoneResetPasswordDTO dto);
+    void resetPasswordByPhone(@Valid PhoneResetPasswordDTO dto) throws BizException;
 
     @Operation(summary = "退出登录", description = "将Token加入Redis黑名单，gateway将拦截已注销的Token")
-    void logout(@Parameter(description = "原始JWT Token（由HTTP Controller从请求头提取传入）") String token);
+    void logout(@Parameter(description = "原始JWT Token（由HTTP Controller从请求头提取传入）") String token) throws BizException;
 
     @Operation(summary = "获取当前登录用户完整信息", description = "返回用户信息、角色列表、菜单树")
-    CurrentUserVO currentUser();
+    CurrentUserVO currentUser() throws BizException;
 
     @Operation(summary = "获取当前用户的菜单树", description = "仅返回菜单树结构，用于前端动态路由渲染")
-    List<SysMenuTreeVO> currentUserMenus();
+    List<SysMenuTreeVO> currentUserMenus() throws BizException;
 
     @Operation(summary = "修改密码", description = "校验原密码后更新为新密码，基于 UserContext 获取当前用户")
-    void changePassword(@Parameter(description = "修改密码参数", required = true) @Valid ChangePasswordDTO dto);
+    void changePassword(@Parameter(description = "修改密码参数", required = true) @Valid ChangePasswordDTO dto) throws BizException;
 }

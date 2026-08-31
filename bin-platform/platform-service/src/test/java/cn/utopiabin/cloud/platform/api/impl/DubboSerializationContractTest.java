@@ -188,6 +188,7 @@ class DubboSerializationContractTest {
         if (!(type instanceof Class<?> clazz)) {
             throw new IllegalArgumentException("Add a sample generator for RPC field: " + type);
         }
+        if (clazz == cn.utopiabin.cloud.common.exception.BizException.class) return new cn.utopiabin.cloud.common.exception.BizException(409, "资源已修改，请刷新后重试");
         if (clazz == String.class) return "test-value";
         if (clazz == long.class || clazz == Long.class) return 17L;
         if (clazz == int.class || clazz == Integer.class) return 3;

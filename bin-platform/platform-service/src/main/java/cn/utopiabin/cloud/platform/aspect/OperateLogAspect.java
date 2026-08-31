@@ -17,7 +17,10 @@ import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
+import cn.utopiabin.cloud.common.exception.BizException;
+import cn.utopiabin.cloud.platform.model.vo.auth.LoginResultVO;
+import cn.utopiabin.cloud.platform.repository.tenant.TenantRepository;
+import org.springframework.beans.BeanWrapperImpl;
 import java.util.regex.Pattern;
 
 /**
@@ -54,20 +57,23 @@ public class OperateLogAspect {
     private static final ExpressionParser SPEL_PARSER = new SpelExpressionParser();
 
     private final SysOperateLogService operateLogService;
+    private final TenantRepository tenantRepository;
 
     @Around("@annotation(operateLog)")
     public Object around(ProceedingJoinPoint joinPoint, OperateLog operateLog) throws Throwable {
         long start = System.currentTimeMillis();
         String error = null;
+        Object result = null;
         try {
-            return joinPoint.proceed();
+            result = joinPoint.proceed();
+            return result;
         } catch (Throwable e) {
-            error = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
+            error = e instanceof BizException biz ? "业务错误码: " + biz.getCode() : e.getClass().getSimpleName();
             throw e;
         } finally {
             long cost = System.currentTimeMillis() - start;
             try {
-                recordAsync(joinPoint, operateLog, cost, error);
+                recordAsync(joinPoint, operateLog, cost, error, result);
             } catch (Exception e) {
                 log.warn("操作日志记录失败(不影响业务): module={}, action={}",
                         operateLog.module(), operateLog.action(), e);
@@ -78,10 +84,23 @@ public class OperateLogAspect {
     /**
      * 异步落库 (复制上下文快照到局部变量，避免异步线程读到已清理的 ThreadLocal)
      */
-    private void recordAsync(ProceedingJoinPoint joinPoint, OperateLog operateLog, long cost, String error) {
+    private void recordAsync(ProceedingJoinPoint joinPoint, OperateLog operateLog, long cost, String error, Object result) {
         String userId = UserContextHolder.getUserId();
         String username = UserContextHolder.getUsername();
         String tenantId = UserContextHolder.getTenantId();
+        if (result instanceof LoginResultVO login && login.getUser() != null) {
+            userId = String.valueOf(login.getUser().getId());
+            tenantId = String.valueOf(login.getUser().getTenantId());
+            username = login.getUser().getUsername();
+        }
+        if (tenantId == null && joinPoint.getArgs().length > 0 && joinPoint.getArgs()[0] != null) {
+            var argument = new BeanWrapperImpl(joinPoint.getArgs()[0]);
+            if (argument.isReadableProperty("tenantCode")) {
+                var code = argument.getPropertyValue("tenantCode");
+                var tenant = code == null ? null : tenantRepository.getByCode(code.toString().trim());
+                if (tenant != null) tenantId = tenant.getId().toString();
+            }
+        }
 
         // 上下文缺失场景 (如登录) 从方法参数提取操作人
         if (username == null || username.isBlank()) {
@@ -91,6 +110,9 @@ public class OperateLogAspect {
             }
         }
 
+        if (username != null && username.matches("1[0-9]{10}")) {
+            username = username.substring(0, 3) + "****" + username.substring(7);
+        }
         String method = buildMethod(joinPoint);
         String params = operateLog.maskParams()
                 ? joinPoint.getArgs().length + " args (masked)"
@@ -136,9 +158,9 @@ public class OperateLogAspect {
         try {
             String json = JsonUtil.toJson(joinPoint.getArgs());
             // JsonUtil.toJson 失败时返回 null → 降级为 deepToString
-            repr = json != null ? json : Arrays.deepToString(joinPoint.getArgs());
+            repr = json != null ? json : "[serialization unavailable]";
         } catch (Exception e) {
-            repr = Arrays.deepToString(joinPoint.getArgs());
+            repr = "[serialization unavailable]";
         }
         String masked = SENSITIVE_PATTERN.matcher(repr).replaceAll("$1***$3");
         return truncate(masked, PARAMS_MAX_LENGTH);
@@ -148,6 +170,6 @@ public class OperateLogAspect {
         if (value == null || value.length() <= maxLength) {
             return value;
         }
-        return value.substring(0, maxLength) + "...";
+        return value.substring(0, maxLength - 3) + "...";
     }
 }

@@ -66,6 +66,8 @@ public class SmsService {
 
     /** 校验业务场景、执行频控并调用厂商发送短信。 */
     @TenantIgnore
+    @cn.utopiabin.cloud.platform.annotation.OperateLog(module = "短信认证", action = "发送验证码",
+            type = cn.utopiabin.cloud.platform.annotation.OperateType.AUTH, maskParams = true)
     public void sendVerificationCode(SmsCodeSendDTO dto) {
         String tenantCode = trim(dto.getTenantCode());
         String phone = trim(dto.getPhone());

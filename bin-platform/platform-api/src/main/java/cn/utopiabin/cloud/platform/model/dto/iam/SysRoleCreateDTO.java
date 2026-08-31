@@ -27,7 +27,7 @@ public class SysRoleCreateDTO extends JsonSerializable {
     @Schema(description = "角色编码（唯一）", example = "admin", requiredMode = Schema.RequiredMode.REQUIRED)
     private String code;
 
-    @Schema(description = "数据权限范围: 1全部 2本部门 3本部门及以下 4仅本人", example = "1")
+    @Schema(description = "数据权限范围: 1租户内全部 4仅本人（业务数据范围预留，管理接口按功能权限和租户隔离）", example = "1")
     private Integer dataScope;
 
     @Schema(description = "是否启用")

@@ -1,5 +1,8 @@
 package cn.utopiabin.cloud.platform.service.iam;
 
+import cn.utopiabin.cloud.platform.annotation.OperateLog;
+import cn.utopiabin.cloud.platform.annotation.OperateType;
+
 import cn.utopiabin.cloud.common.exception.BizException;
 import cn.utopiabin.cloud.common.utils.StrUtil;
 import cn.utopiabin.cloud.platform.constant.PlatformErrorCode;
@@ -30,6 +33,7 @@ public class SysPermissionService {
     private final PermissionService permissionService;
 
     @Transactional(rollbackFor = Exception.class)
+    @OperateLog(module = "权限管理", action = "新增权限", type = OperateType.CREATE, maskParams = true)
     public Long create(SysPermissionCreateDTO dto) {
         String code = dto.getCode().trim().toLowerCase();
         assertCodeUnique(code, null);
@@ -44,6 +48,7 @@ public class SysPermissionService {
     }
 
     @Transactional(rollbackFor = Exception.class)
+    @OperateLog(module = "权限管理", action = "修改权限", type = OperateType.UPDATE, maskParams = true)
     public void update(SysPermissionUpdateDTO dto) {
         var permission = permissionRepository.getOrThrow(dto.getId());
         if (!Objects.equals(permission.getVersion(), dto.getExpectedVersion())) {
@@ -68,6 +73,7 @@ public class SysPermissionService {
     }
 
     @Transactional(rollbackFor = Exception.class)
+    @OperateLog(module = "权限管理", action = "删除权限", type = OperateType.DELETE, maskParams = true)
     public void remove(Long id) {
         var permission = permissionRepository.getOrThrow(id);
         if (rolePermissionRepository.existsByPermissionId(id)

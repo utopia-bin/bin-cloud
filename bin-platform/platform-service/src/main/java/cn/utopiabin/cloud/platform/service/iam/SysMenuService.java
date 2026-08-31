@@ -1,5 +1,8 @@
 package cn.utopiabin.cloud.platform.service.iam;
 
+import cn.utopiabin.cloud.platform.annotation.OperateLog;
+import cn.utopiabin.cloud.platform.annotation.OperateType;
+
 import cn.utopiabin.cloud.common.exception.BizException;
 import cn.utopiabin.cloud.common.utils.StrUtil;
 import cn.utopiabin.cloud.platform.constant.PlatformErrorCode;
@@ -39,6 +42,7 @@ public class SysMenuService {
 
     @Transactional(rollbackFor = Exception.class)
     @RequirePermission("platform:menu:create")
+    @OperateLog(module = "菜单管理", action = "新增菜单", type = OperateType.CREATE, maskParams = true)
     public Long create(SysMenuCreateDTO dto) {
         var menu = dto.copyTo(SysMenu.class);
         menu.setParentId(Optional.ofNullable(dto.getParentId()).orElse(0L));
@@ -59,6 +63,7 @@ public class SysMenuService {
 
     @Transactional(rollbackFor = Exception.class)
     @RequirePermission("platform:menu:update")
+    @OperateLog(module = "菜单管理", action = "修改菜单", type = OperateType.UPDATE, maskParams = true)
     public void update(SysMenuUpdateDTO dto) {
         if (dto.getId().equals(dto.getParentId())) {
             throw new BizException(PlatformErrorCode.MENU_PARENT_SELF.getCode(),
@@ -88,6 +93,7 @@ public class SysMenuService {
 
     @Transactional(rollbackFor = Exception.class)
     @RequirePermission("platform:menu:delete")
+    @OperateLog(module = "菜单管理", action = "删除菜单", type = OperateType.DELETE, maskParams = true)
     public void remove(Long id) {
         menuRepository.getOrThrow(id);
         if (menuRepository.hasChild(id)) {
@@ -100,6 +106,7 @@ public class SysMenuService {
 
     @Transactional(rollbackFor = Exception.class)
     @RequirePermission("platform:menu:delete")
+    @OperateLog(module = "菜单管理", action = "删除菜单", type = OperateType.DELETE, maskParams = true)
     public void batchDelete(BatchDeleteDTO dto) {
         for (Long id : dto.getIds()) {
             if (menuRepository.hasChild(id)) {

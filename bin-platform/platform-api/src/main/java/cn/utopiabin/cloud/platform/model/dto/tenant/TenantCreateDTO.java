@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Schema(description = "租户新增参数")
-public class TenantCreateDTO extends JsonSerializable {
+public class TenantCreateDTO extends TenantAdminDTO {
 
     @NotBlank(message = "租户名称不能为空")
     @Size(max = 100, message = "租户名称长度不能超过100个字符")

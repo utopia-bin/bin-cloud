@@ -21,7 +21,7 @@ public class SysRoleVO extends BaseVO {
     @Schema(description = "角色编码")
     private String code;
 
-    @Schema(description = "数据权限范围: 1全部 2本部门 3本部门及以下 4仅本人")
+    @Schema(description = "数据权限范围: 1租户内全部 4仅本人（业务数据范围预留，管理接口按功能权限和租户隔离）")
     private Integer dataScope;
 
     @Schema(description = "是否启用")

@@ -42,7 +42,7 @@ public @interface OperateLog {
      * 适用于含裸敏感参数的方法 (如 resetPassword(userId, password)、logout(token))，
      * 此类参数非 DTO 字段形式，字段级脱敏正则无法覆盖。
      */
-    boolean maskParams() default false;
+    boolean maskParams() default true;
 
     /**
      * 操作人 SpEL 表达式 (可选)

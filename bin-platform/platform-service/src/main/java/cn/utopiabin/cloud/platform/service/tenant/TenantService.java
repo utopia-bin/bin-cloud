@@ -1,5 +1,8 @@
 package cn.utopiabin.cloud.platform.service.tenant;
 
+import cn.utopiabin.cloud.platform.annotation.OperateLog;
+import cn.utopiabin.cloud.platform.annotation.OperateType;
+
 import cn.utopiabin.cloud.common.exception.BizException;
 import cn.utopiabin.cloud.common.model.vo.PageResult;
 import cn.utopiabin.cloud.common.utils.StrUtil;
@@ -32,9 +35,11 @@ import java.util.Optional;
 public class TenantService {
 
     private final TenantRepository tenantRepository;
+    private final TenantProvisioningService provisioningService;
 
     @Transactional(rollbackFor = Exception.class)
     @RequirePermission("platform:tenant:create")
+    @OperateLog(module = "租户管理", action = "新增租户", type = OperateType.CREATE, maskParams = true)
     public Long create(TenantCreateDTO dto) {
         var code = dto.getCode().trim();
         if (tenantRepository.countByField(Tenant::getCode, code, null) > 0) {
@@ -52,11 +57,21 @@ public class TenantService {
         tenant.setContactEmail(StrUtil.defaultIfBlank(dto.getContactEmail(), ""));
         tenant.setComment(StrUtil.defaultIfBlank(dto.getComment(), ""));
         tenantRepository.save(tenant);
+        provisioningService.provision(tenant.getId(), dto);
         return tenant.getId();
     }
 
     @Transactional(rollbackFor = Exception.class)
     @RequirePermission("platform:tenant:update")
+    @OperateLog(module = "租户管理", action = "初始化租户管理员", type = OperateType.CREATE, maskParams = true)
+    public void provisionAdmin(Long id, cn.utopiabin.cloud.platform.model.dto.tenant.TenantAdminDTO dto) {
+        tenantRepository.getOrThrow(id);
+        provisioningService.provision(id, dto);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @RequirePermission("platform:tenant:update")
+    @OperateLog(module = "租户管理", action = "修改租户", type = OperateType.UPDATE, maskParams = true)
     public void update(TenantUpdateDTO dto) {
         var tenant = tenantRepository.getOrThrow(dto.getId());
         if (!java.util.Objects.equals(tenant.getVersion(), dto.getExpectedVersion())) {
@@ -84,6 +99,7 @@ public class TenantService {
 
     @Transactional(rollbackFor = Exception.class)
     @RequirePermission("platform:tenant:delete")
+    @OperateLog(module = "租户管理", action = "删除租户", type = OperateType.DELETE, maskParams = true)
     public void remove(Long id) {
         tenantRepository.getOrThrow(id);
         tenantRepository.removeById(id);
@@ -91,6 +107,7 @@ public class TenantService {
 
     @Transactional(rollbackFor = Exception.class)
     @RequirePermission("platform:tenant:update")
+    @OperateLog(module = "租户管理", action = "修改状态租户", type = OperateType.ENABLE, maskParams = true)
     public void enable(Long id, Boolean available) {
         var tenant = tenantRepository.getOrThrow(id);
         tenant.setAvailable(available);

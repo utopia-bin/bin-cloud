@@ -1,5 +1,7 @@
 package cn.utopiabin.cloud.platform.api.sms;
 
+import cn.utopiabin.cloud.common.exception.BizException;
+
 import cn.utopiabin.cloud.platform.model.dto.sms.SmsCodeSendDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -9,5 +11,5 @@ import jakarta.validation.Valid;
 @Tag(name = "短信服务", description = "短信验证码发送能力")
 public interface SmsApi {
     @Operation(summary = "发送短信验证码")
-    void sendVerificationCode(@Valid SmsCodeSendDTO dto);
+    void sendVerificationCode(@Valid SmsCodeSendDTO dto) throws BizException;
 }

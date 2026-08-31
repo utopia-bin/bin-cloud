@@ -37,6 +37,14 @@ public class TenantController {
     @DubboReference
     private TenantApi tenantApi;
 
+    @Operation(summary = "初始化已有租户的管理员")
+    @PostMapping("/{id}/administrator")
+    public RestResult<Void> provisionAdmin(@PathVariable Long id,
+            @Valid @RequestBody cn.utopiabin.cloud.platform.model.dto.tenant.TenantAdminDTO dto) {
+        tenantApi.provisionAdmin(id, dto);
+        return RestResult.ok();
+    }
+
     @Operation(summary = "新增租户")
     @PostMapping
     public RestResult<Long> create(@Valid @RequestBody TenantCreateDTO dto) {

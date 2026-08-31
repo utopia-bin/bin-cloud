@@ -1,5 +1,7 @@
 package cn.utopiabin.cloud.platform.api.iam;
 
+import cn.utopiabin.cloud.common.exception.BizException;
+
 import cn.utopiabin.cloud.platform.model.dto.iam.SysPermissionCreateDTO;
 import cn.utopiabin.cloud.platform.model.dto.iam.SysPermissionUpdateDTO;
 import cn.utopiabin.cloud.platform.model.vo.iam.SysPermissionVO;
@@ -25,17 +27,17 @@ import java.util.List;
 public interface SysPermissionApi {
 
     @Operation(summary = "新增权限资源", description = "权限编码全局唯一，格式为 domain:resource:action")
-    Long create(@Parameter(description = "权限资源新增参数", required = true) @Valid SysPermissionCreateDTO dto);
+    Long create(@Parameter(description = "权限资源新增参数", required = true) @Valid SysPermissionCreateDTO dto) throws BizException;
 
     @Operation(summary = "编辑权限资源", description = "使用乐观锁版本号更新；被菜单引用时不可修改权限编码")
-    void update(@Parameter(description = "权限资源编辑参数", required = true) @Valid SysPermissionUpdateDTO dto);
+    void update(@Parameter(description = "权限资源编辑参数", required = true) @Valid SysPermissionUpdateDTO dto) throws BizException;
 
     @Operation(summary = "删除权限资源", description = "已分配给角色或被菜单引用的权限资源不可删除")
-    void remove(@Parameter(description = "权限资源ID", required = true) @NotNull Long id);
+    void remove(@Parameter(description = "权限资源ID", required = true) @NotNull Long id) throws BizException;
 
     @Operation(summary = "查询权限资源详情")
-    SysPermissionVO get(@Parameter(description = "权限资源ID", required = true) @NotNull Long id);
+    SysPermissionVO get(@Parameter(description = "权限资源ID", required = true) @NotNull Long id) throws BizException;
 
     @Operation(summary = "查询全部权限资源", description = "按排序值和权限编码返回权限资源目录")
-    List<SysPermissionVO> list();
+    List<SysPermissionVO> list() throws BizException;
 }

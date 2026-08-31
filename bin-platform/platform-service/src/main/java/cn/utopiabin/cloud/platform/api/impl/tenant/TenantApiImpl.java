@@ -28,6 +28,11 @@ import java.util.List;
 @RequiredArgsConstructor
 @Tag(name = "租户管理", description = "租户管理 Dubbo 服务实现")
 public class TenantApiImpl implements TenantApi {
+    @Override
+    public void provisionAdmin(Long id, cn.utopiabin.cloud.platform.model.dto.tenant.TenantAdminDTO dto) {
+        tenantService.provisionAdmin(id, dto);
+    }
+
 
     private final TenantService tenantService;
 

@@ -1,5 +1,8 @@
 package cn.utopiabin.cloud.platform.service.system;
 
+import cn.utopiabin.cloud.platform.annotation.OperateLog;
+import cn.utopiabin.cloud.platform.annotation.OperateType;
+
 import cn.utopiabin.cloud.common.exception.BizException;
 import cn.utopiabin.cloud.common.model.vo.PageResult;
 import cn.utopiabin.cloud.common.redis.RedisClient;
@@ -61,6 +64,7 @@ public class SysDictService {
     // ==================== 字典 CRUD ====================
 
     @Transactional(rollbackFor = Exception.class)
+    @OperateLog(module = "字典管理", action = "新增字典", type = OperateType.CREATE, maskParams = true)
     public void createDict(SysDictCreateDTO dto) {
         var name = dto.getName().trim();
         var code = dto.getCode().trim();
@@ -78,6 +82,7 @@ public class SysDictService {
     }
 
     @Transactional(rollbackFor = Exception.class)
+    @OperateLog(module = "字典管理", action = "修改字典", type = OperateType.UPDATE, maskParams = true)
     public void updateDict(SysDictUpdateDTO dto) {
         var name = dto.getName().trim();
         var code = dto.getCode().trim();
@@ -105,6 +110,7 @@ public class SysDictService {
     }
 
     @Transactional(rollbackFor = Exception.class)
+    @OperateLog(module = "字典管理", action = "删除字典", type = OperateType.DELETE, maskParams = true)
     public void removeDict(Long id) {
         var dict = dictRepository.getOrThrow(id);
         optionsRepository.removeByDictId(id);
@@ -133,6 +139,7 @@ public class SysDictService {
     // ==================== 字典项 CRUD ====================
 
     @Transactional(rollbackFor = Exception.class)
+    @OperateLog(module = "字典管理", action = "新增字典项", type = OperateType.CREATE, maskParams = true)
     public void createDictOption(SysDictOptionsCreateDTO dto) {
         var dictId = dto.getDictId();
         dictRepository.getOrThrow(dictId);
@@ -156,6 +163,7 @@ public class SysDictService {
     }
 
     @Transactional(rollbackFor = Exception.class)
+    @OperateLog(module = "字典管理", action = "修改字典项", type = OperateType.UPDATE, maskParams = true)
     public void updateDictOption(SysDictOptionsUpdateDTO dto) {
         if (dto.getId().equals(dto.getParentId())) {
             throw new BizException(PlatformErrorCode.DICT_OPTION_PARENT_SELF.getCode(),
@@ -185,6 +193,7 @@ public class SysDictService {
     }
 
     @Transactional(rollbackFor = Exception.class)
+    @OperateLog(module = "字典管理", action = "删除字典项", type = OperateType.DELETE, maskParams = true)
     public void removeDictOption(Long id) {
         var option = optionsRepository.getOrThrow(id);
         if (optionsRepository.hasChild(id)) {
@@ -237,6 +246,7 @@ public class SysDictService {
      * <p>
      * 清除所有字典缓存后主动预热：查出全部字典项，按编码分组后逐个写入缓存。
      */
+    @OperateLog(module = "字典管理", action = "刷新缓存", type = OperateType.UPDATE, maskParams = true)
     public void refreshDictCache() {
         var keys = redisClient.keys(CACHE_PREFIX + "*");
         if (keys != null && !keys.isEmpty()) {

@@ -1,5 +1,8 @@
 package cn.utopiabin.cloud.platform.service.system;
 
+import cn.utopiabin.cloud.platform.annotation.OperateLog;
+import cn.utopiabin.cloud.platform.annotation.OperateType;
+
 import cn.utopiabin.cloud.common.exception.BizException;
 import cn.utopiabin.cloud.common.model.vo.PageResult;
 import cn.utopiabin.cloud.common.redis.RedisClient;
@@ -50,6 +53,7 @@ public class SysParameterService {
     private final RedisClient redisClient;
 
     @Transactional(rollbackFor = Exception.class)
+    @OperateLog(module = "参数管理", action = "新增参数", type = OperateType.CREATE, maskParams = true)
     public void create(SysParameterCreateDTO dto) {
         var key = dto.getParamKey().trim();
         if (parameterRepository.keyExists(key, null)) {
@@ -66,6 +70,7 @@ public class SysParameterService {
     }
 
     @Transactional(rollbackFor = Exception.class)
+    @OperateLog(module = "参数管理", action = "修改参数", type = OperateType.UPDATE, maskParams = true)
     public void update(SysParameterUpdateDTO dto) {
         var key = dto.getParamKey().trim();
         var entity = parameterRepository.getOrThrow(dto.getId());
@@ -93,6 +98,7 @@ public class SysParameterService {
     }
 
     @Transactional(rollbackFor = Exception.class)
+    @OperateLog(module = "参数管理", action = "删除参数", type = OperateType.DELETE, maskParams = true)
     public void remove(Long id) {
         var entity = parameterRepository.getOrThrow(id);
         parameterRepository.removeById(id);
@@ -142,6 +148,7 @@ public class SysParameterService {
      * <p>
      * 清除所有参数缓存后主动预热：查出全部参数，逐个写入缓存。
      */
+    @OperateLog(module = "参数管理", action = "刷新缓存", type = OperateType.UPDATE, maskParams = true)
     public void refreshCache() {
         var keys = redisClient.keys(CACHE_PREFIX + "*");
         if (keys != null && !keys.isEmpty()) {

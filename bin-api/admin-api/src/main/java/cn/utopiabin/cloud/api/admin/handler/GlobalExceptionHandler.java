@@ -55,8 +55,18 @@ public class GlobalExceptionHandler {
         return badRequest(exception.getMessage());
     }
 
+    @ExceptionHandler({org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class,
+            org.springframework.http.converter.HttpMessageNotReadableException.class})
+    public ResponseEntity<RestResult<Void>> handleMalformedRequest(Exception exception) {
+        return badRequest("请求参数格式错误，请检查 ID、日期及必填字段");
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<RestResult<Void>> handleUnexpectedException(Exception exception) {
+        var seen = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<Throwable, Boolean>());
+        for (Throwable cause = exception; cause != null && seen.add(cause); cause = cause.getCause()) {
+            if (cause instanceof BizException biz) return handleBizException(biz);
+        }
         LOG.error("管理端接口发生未处理异常", exception);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(RestResult.fail(500, "系统繁忙，请稍后重试"));

@@ -1,5 +1,7 @@
 package cn.utopiabin.cloud.platform.api.system;
 
+import cn.utopiabin.cloud.common.exception.BizException;
+
 import cn.utopiabin.cloud.common.model.vo.PageResult;
 import cn.utopiabin.cloud.platform.model.dto.system.SysOperateLogPageQuery;
 import cn.utopiabin.cloud.platform.model.vo.system.SysOperateLogVO;
@@ -20,5 +22,5 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public interface SysOperateLogApi {
 
     @Operation(summary = "分页查询操作日志", description = "支持按模块/操作人/结果/关键字过滤，操作时间倒序")
-    PageResult<SysOperateLogVO> page(@Parameter(description = "分页查询条件", required = true) SysOperateLogPageQuery query);
+    PageResult<SysOperateLogVO> page(@Parameter(description = "分页查询条件", required = true) SysOperateLogPageQuery query) throws BizException;
 }
