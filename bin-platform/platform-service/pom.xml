@@ -85,7 +85,7 @@
             <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
         </dependency>
-        <!-- Dubbo (Spring Boot 3.x, dubbo-spring-boot-starter 已包含 dubbo 核心) -->
+        <!-- Dubbo 核心、引用注入自动配置及 Spring Boot 3 Triple 扩展。 -->
         <dependency>
             <groupId>org.apache.dubbo</groupId>
             <artifactId>dubbo</artifactId>
@@ -93,12 +93,6 @@
         <dependency>
             <groupId>org.apache.dubbo</groupId>
             <artifactId>dubbo-spring-boot-starter</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.dubbo</groupId>
-                    <artifactId>dubbo-spring-boot-autoconfigure</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.dubbo</groupId>
