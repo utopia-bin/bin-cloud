@@ -29,7 +29,7 @@ mvn -pl :bin-gateway -am spring-boot:run
 
 Use four-space indentation, UTF-8, one public type per file, and package names under `cn.utopiabin.cloud`. Follow existing suffixes: `DTO`, `VO`, `Repository`, `Service`, `Controller`, `Config`, and `AutoConfiguration`. Use PascalCase for types, camelCase for members, and UPPER_SNAKE_CASE for constants. Prefer constructor injection and existing Lombok patterns such as `@RequiredArgsConstructor` and `@Slf4j`. No formatter or lint plugin is enforced; keep imports organized and run `mvn verify` before submitting.
 
-提交前必须格式化代码并清理无效导入、通配符导入和不必要的全限定类名；仅在类名确实冲突时使用全限定类名。业务注释和 Javadoc 统一使用中文，关键边界、状态转换和异常分支必须说明原因。持久层统一使用 MyBatis-Plus；简单单表操作使用实体、Mapper 和条件构造器，复杂 SQL 放在 Mapper XML 中，禁止在 Service 或 Controller 中通过 `JdbcTemplate` 拼写 SQL。
+提交前必须格式化代码并清理无效导入、通配符导入和不必要的全限定类名；仅在类名确实冲突时使用全限定类名。业务注释和 Javadoc 统一使用中文，关键边界、状态转换和异常分支必须说明原因。持久层统一使用 MyBatis-Plus；简单单表操作使用实体、Mapper 和条件构造器，复杂 SQL 放在 Mapper XML 中。Service 只负责业务编排，数据库访问和结果映射必须放在按领域拆分的 Repository 中，禁止在 Service 或 Controller 中注入 `JdbcTemplate`、`SqlSessionTemplate`，也禁止通过字符串 Mapper statement 名称访问数据库。后端功能权限统一使用 `@RequirePermission`，只有注解无法表达的租户隔离或资源归属校验才允许编写边界判断，并使用中文说明原因。
 
 All API contract models, including DTOs, VOs, query objects, pagination wrappers, and other request or response models, must provide Swagger/OpenAPI documentation with `io.swagger.v3.oas.annotations.media.Schema`. Add a clear, business-oriented `@Schema(description = "...")` to every model type and every externally visible field. Document value ranges, formats, enum meanings, defaults, required status, and representative examples where they improve the generated API contract; do not use vague descriptions that merely repeat the Java field name.
 

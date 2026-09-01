@@ -1,14 +1,13 @@
 package cn.utopiabin.cloud.platform.service.application;
 
-import static cn.utopiabin.cloud.platform.service.application.ApplicationStore.changed;
-import static cn.utopiabin.cloud.platform.service.application.ApplicationStore.flag;
-import static cn.utopiabin.cloud.platform.service.application.ApplicationStore.number;
-import static cn.utopiabin.cloud.platform.service.application.ApplicationStore.time;
+import static cn.utopiabin.cloud.platform.util.ApplicationDomainUtils.flag;
+import static cn.utopiabin.cloud.platform.util.ApplicationDomainUtils.number;
+import static cn.utopiabin.cloud.platform.util.ApplicationDomainUtils.requireSingleChange;
+import static cn.utopiabin.cloud.platform.util.ApplicationDomainUtils.time;
 
 import cn.utopiabin.cloud.common.exception.BizException;
 import cn.utopiabin.cloud.common.utils.JsonUtil;
 import cn.utopiabin.cloud.platform.config.JwtTokenProperties;
-import cn.utopiabin.cloud.platform.entity.iam.SysMenu;
 import cn.utopiabin.cloud.platform.entity.iam.SysUser;
 import cn.utopiabin.cloud.platform.model.dto.application.SsoAuthorizeDTO;
 import cn.utopiabin.cloud.platform.model.dto.application.SsoExchangeDTO;
@@ -16,11 +15,10 @@ import cn.utopiabin.cloud.platform.model.dto.application.SsoRefreshDTO;
 import cn.utopiabin.cloud.platform.model.vo.application.ApplicationProfileVO;
 import cn.utopiabin.cloud.platform.model.vo.application.SsoAuthorizeVO;
 import cn.utopiabin.cloud.platform.model.vo.application.SsoTokenVO;
+import cn.utopiabin.cloud.platform.repository.application.SsoRepository;
 import cn.utopiabin.cloud.platform.util.JwtTokenService;
 import cn.utopiabin.cloud.platform.util.MenuTreeBuilder;
 import cn.utopiabin.cloud.platform.util.TransactionAfterCommitExecutor;
-
-import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 
 import lombok.RequiredArgsConstructor;
 
@@ -38,7 +36,7 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 public class SsoService {
-    private final ApplicationStore store;
+    private final SsoRepository repository;
     private final ApplicationBoundary boundary;
     private final SsoTicketStore tickets;
     private final JwtTokenService jwt;
@@ -60,7 +58,7 @@ public class SsoService {
     public String platformLogin(SysUser user, List<String> roles) {
         var access = boundary.access(user.getTenantId(), user.getId(), user.getTenantId());
         var result = create(access, null, roles, Math.max(60, jwtProperties.getJwtExpiration()));
-        store.update("ssoServiceUpdate12", user.getId(), user.getTenantId());
+        repository.updateLastLogin(user.getId(), user.getTenantId());
         return result.getAccessToken();
     }
 
@@ -70,7 +68,7 @@ public class SsoService {
             throw new BizException(401, "Token不属于目标应用");
         String sid = claims.get("sid", String.class);
         if (sid == null || sid.isBlank()) throw new BizException(401, "旧登录态不再支持，请重新登录");
-        var session = store.one("ssoServiceSelect01", sid);
+        var session = repository.getSession(sid);
         if (!"ACTIVE".equals(session.get("status"))
                 || !time(session, "expire_at").isAfter(LocalDateTime.now()))
             throw new BizException(401, "会话已撤销或过期");
@@ -94,13 +92,10 @@ public class SsoService {
             throw new BizException(401, "密码或应用身份已变化，请重新登录");
         String parent = (String) session.get("parent_session_id");
         if (parent != null && !parent.isBlank()) {
-            var parents =
-                    store.queryForList(
-                            "ssoServiceSelect07",
-                            parent,
-                            session.get("tenant_id"),
-                            session.get("user_id"));
-            if (parents.isEmpty()) throw new BizException(401, "平台登录已退出，请重新登录");
+            if (!repository.parentSessionActive(
+                    parent, session.get("tenant_id"), session.get("user_id"))) {
+                throw new BizException(401, "平台登录已退出，请重新登录");
+            }
         }
         session.putAll(access);
         // access.id 表示租户应用实例，返回会话标识时必须使用 session_id，不能误用会话表数字主键。
@@ -117,7 +112,7 @@ public class SsoService {
                             number(parent, "user_id"),
                             dto.getTenantApplicationId());
             long app = number(access, "application_id");
-            var product = store.one("ssoServiceSelect02", app);
+            var product = repository.getApplication(app);
             if (app == 1
                     || !flag(product, "sso_enabled")
                     || product.get("client_secret_hash") == null)
@@ -169,7 +164,7 @@ public class SsoService {
     }
 
     private Map<String, Object> client(String clientId, String secret) {
-        var rows = store.queryForList("ssoServiceSelect08", clientId);
+        var rows = repository.lockClient(clientId);
         if (rows.isEmpty()
                 || secret == null
                 || !SsoCrypto.equal(
@@ -179,8 +174,8 @@ public class SsoService {
     }
 
     private void whitelist(long app, String uri) {
-        if (store.queryForList("ssoServiceSelect09", String.class, app).stream()
-                .noneMatch(uri::equals)) throw new BizException(400, "回调地址不在当前应用的精确白名单内");
+        if (repository.listRedirectUris(app).stream().noneMatch(uri::equals))
+            throw new BizException(400, "回调地址不在当前应用的精确白名单内");
     }
 
     @Transactional
@@ -199,8 +194,7 @@ public class SsoService {
                 throw new BizException(400, "授权码的应用、回调地址或PKCE校验失败");
             whitelist(ticket.app(), ticket.redirect());
             var parent =
-                    store.one(
-                            "ssoServiceSelect03", ticket.parent(), ticket.tenant(), ticket.user());
+                    repository.getPlatformSession(ticket.parent(), ticket.tenant(), ticket.user());
             var access = boundary.access(ticket.tenant(), ticket.user(), ticket.instance());
             if (ticket.instanceVersion() != number(access, "version")
                     || number(parent, "credential_version") != number(access, "credential_version"))
@@ -246,9 +240,7 @@ public class SsoService {
         // boundary.access 的联表结果通过 user_id 单独携带当前认证用户。
         long user = number(access, "user_id");
         String sid = SsoCrypto.random(), refresh = parent == null ? null : SsoCrypto.random();
-        store.update(
-                "ssoServiceUpdate13",
-                IdWorker.getId(),
+        repository.insertSession(
                 sid,
                 parent,
                 tenant,
@@ -305,10 +297,8 @@ public class SsoService {
         try {
             var app = client(dto.getClientId(), dto.getClientSecret());
             var session =
-                    store.one(
-                            "ssoServiceSelect04",
-                            SsoCrypto.hash(dto.getRefreshToken()),
-                            number(app, "id"));
+                    repository.getRefreshSession(
+                            SsoCrypto.hash(dto.getRefreshToken()), number(app, "id"));
             var access =
                     boundary.access(
                             number(session, "tenant_id"),
@@ -316,18 +306,14 @@ public class SsoService {
                             number(session, "tenant_application_id"));
             if (number(session, "credential_version") != number(access, "credential_version"))
                 throw new BizException(401, "密码已变更");
-            store.one(
-                    "ssoServiceSelect05",
+            repository.requirePlatformSession(
                     session.get("parent_session_id"),
                     session.get("tenant_id"),
                     session.get("user_id"));
             String refresh = SsoCrypto.random(), sid = (String) session.get("session_id");
-            changed(
-                    store.update(
-                            "ssoServiceUpdate14",
-                            SsoCrypto.hash(refresh),
-                            sid,
-                            SsoCrypto.hash(dto.getRefreshToken())));
+            requireSingleChange(
+                    repository.rotateRefreshToken(
+                            SsoCrypto.hash(refresh), sid, SsoCrypto.hash(dto.getRefreshToken())));
             long ttl =
                     Math.min(
                             300,
@@ -362,7 +348,7 @@ public class SsoService {
     }
 
     public List<String> roles(long tenant, long user, long instance) {
-        return store.queryForList("ssoServiceSelect10", String.class, tenant, user, instance);
+        return repository.listRoleCodes(tenant, user, instance);
     }
 
     public ApplicationProfileVO profile(String token, String audience) {
@@ -371,9 +357,8 @@ public class SsoService {
                 user = number(access, "user_id"),
                 instance = number(access, "tenant_application_id"),
                 app = number(access, "application_id");
-        var codes =
-                store.queryForList("ssoServiceSelect11", String.class, app, tenant, instance, user);
-        var all = store.list(SysMenu.class, "ssoServiceSelect06", app);
+        var codes = repository.listPermissionCodes(app, tenant, instance, user);
+        var all = repository.listMenus(app);
         var menus =
                 all.stream()
                         .filter(
@@ -407,7 +392,11 @@ public class SsoService {
                 && (claims.getAudience() == null
                         || !claims.getAudience().equals(Set.of("platform-console"))))
             throw new BizException(403, "应用会话不能注销平台会话");
-        store.update(global ? "logoutGlobally" : "logoutSession", sid);
+        if (global) {
+            repository.logoutGlobally(sid);
+        } else {
+            repository.logout(sid);
+        }
         TransactionAfterCommitExecutor.afterCommit(
                 () ->
                         audit.record(

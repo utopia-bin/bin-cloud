@@ -1,5 +1,7 @@
 package cn.utopiabin.cloud.platform.service.application;
 
+import cn.utopiabin.cloud.platform.repository.application.ApplicationSessionRepository;
+
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 
 import lombok.RequiredArgsConstructor;
@@ -12,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class SsoAuditService {
-    private final ApplicationStore store;
+    private final ApplicationSessionRepository repository;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void record(
@@ -25,8 +27,7 @@ public class SsoAuditService {
             Long user,
             String sid) {
         String trace = MDC.get("traceId");
-        store.update(
-                "insertSsoAudit",
+        repository.insertAuditLog(
                 IdWorker.getId(),
                 tenant,
                 app,

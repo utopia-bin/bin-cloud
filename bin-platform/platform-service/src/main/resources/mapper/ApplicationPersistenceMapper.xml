@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="cn.utopiabin.cloud.platform.mapper.application.ApplicationPersistenceMapper">
-    <select id="applicationBoundarySelect01" resultType="map"><![CDATA[
+    <select id="selectTenantApplicationById" resultType="map"><![CDATA[
         SELECT * FROM sys_tenant_application WHERE id=#{p0} AND is_delete=0
     ]]></select>
 
-    <select id="applicationBoundarySelect02" resultType="map"><![CDATA[
+    <select id="selectUserApplicationAccess" resultType="map"><![CDATA[
         SELECT ta.*, a.code AS application_code, a.name AS application_name, a.status AS product_status,
        a.sso_enabled, a.service_id, a.entry_url, a.icon_url,
        t.available AS tenant_available, t.is_delete AS tenant_deleted, t.expire_time AS tenant_expire,
@@ -16,107 +16,107 @@ JOIN sys_user u ON u.tenant_id=ta.tenant_id AND u.id=#{p0}
 WHERE ta.id=#{p1} AND ta.tenant_id=#{p2} AND ta.is_delete=0
     ]]></select>
 
-    <select id="applicationBoundarySelect03" resultType="map"><![CDATA[
+    <select id="selectUserApplicationGrant" resultType="map"><![CDATA[
         SELECT * FROM sys_user_application WHERE tenant_id=#{p0} AND tenant_application_id=#{p1} AND user_id=#{p2} AND is_delete=0
     ]]></select>
 
-    <select id="applicationCatalogServiceSelect01" resultType="map"><![CDATA[
+    <select id="selectApplicationForUpdate" resultType="map"><![CDATA[
         SELECT * FROM sys_application WHERE id=#{p0} AND is_delete=0 FOR UPDATE
     ]]></select>
 
-    <select id="applicationCatalogServiceSelect02" resultType="map"><![CDATA[
+    <select id="selectApplicationIdForUpdate" resultType="map"><![CDATA[
         SELECT id FROM sys_application WHERE id=#{p0} AND is_delete=0 FOR UPDATE
     ]]></select>
 
-    <select id="applicationCatalogServiceSelect03" resultType="map"><![CDATA[
+    <select id="selectApplicationServiceForUpdate" resultType="map"><![CDATA[
         SELECT service_id FROM sys_application WHERE id=#{p0} AND is_delete=0 FOR UPDATE
     ]]></select>
 
-    <select id="applicationCatalogServiceSelect04" resultType="map"><![CDATA[
+    <select id="selectApplicationDetail" resultType="map"><![CDATA[
         SELECT *, (client_secret_hash IS NOT NULL) AS client_configured FROM sys_application WHERE id=#{p0} AND is_delete=0
     ]]></select>
 
-    <select id="applicationCatalogServiceSelect05" resultType="map"><![CDATA[
+    <select id="selectApplicationRedirects" resultType="map"><![CDATA[
         SELECT * FROM sys_application_redirect_uri WHERE application_id=#{p0} AND is_delete=0 ORDER BY id
     ]]></select>
 
-    <select id="applicationCatalogServiceSelect06" resultType="map"><![CDATA[
+    <select id="countActiveTenantApplications" resultType="map"><![CDATA[
         SELECT COUNT(*) FROM sys_tenant_application WHERE application_id=#{p0} AND status<>'CLOSED' AND is_delete=0
     ]]></select>
 
-    <update id="applicationCatalogServiceUpdate07"><![CDATA[
+    <update id="insertApplication"><![CDATA[
         INSERT INTO sys_application (id,code,name,description,icon_url,entry_url,service_id,status,sso_enabled,sort,create_user,modify_user) VALUES (#{p0},#{p1},#{p2},#{p3},#{p4},#{p5},#{p6},#{p7},#{p8},#{p9},#{p10},#{p11})
     ]]></update>
 
-    <update id="applicationCatalogServiceUpdate08"><![CDATA[
+    <update id="updateApplication"><![CDATA[
         UPDATE sys_application SET name=#{p0},description=#{p1},icon_url=#{p2},entry_url=#{p3},status=#{p4},sso_enabled=#{p5},sort=#{p6},version=version+1,modify_user=#{p7} WHERE id=#{p8} AND version=#{p9} AND is_delete=0
     ]]></update>
 
-    <update id="applicationCatalogServiceUpdate09"><![CDATA[
+    <update id="deleteApplicationRedirects"><![CDATA[
         DELETE FROM sys_application_redirect_uri WHERE application_id=#{p0}
     ]]></update>
 
-    <update id="applicationCatalogServiceUpdate10"><![CDATA[
+    <update id="insertApplicationRedirect"><![CDATA[
         INSERT INTO sys_application_redirect_uri (id,application_id,environment,redirect_uri,logout_uri,available) VALUES (#{p0},#{p1},#{p2},#{p3},#{p4},#{p5})
     ]]></update>
 
-    <update id="applicationCatalogServiceUpdate11"><![CDATA[
+    <update id="softDeleteApplication"><![CDATA[
         UPDATE sys_application SET is_delete=1,status='OFFLINE',version=version+1 WHERE id=#{p0} AND version=#{p1} AND is_delete=0
     ]]></update>
 
-    <update id="applicationCatalogServiceUpdate12"><![CDATA[
+    <update id="updateApplicationClientSecret"><![CDATA[
         UPDATE sys_application SET client_secret_hash=#{p0},version=version+1 WHERE id=#{p1} AND version=#{p2} AND is_delete=0
     ]]></update>
 
-    <select id="applicationRbacServiceSelect01" resultType="map"><![CDATA[
+    <select id="selectRbacInstanceForUpdate" resultType="map"><![CDATA[
         SELECT id FROM sys_tenant_application WHERE id=#{p0} AND tenant_id=#{p1} FOR UPDATE
     ]]></select>
 
-    <select id="applicationRbacServiceSelect02" resultType="map"><![CDATA[
+    <select id="selectTenantUser" resultType="map"><![CDATA[
         SELECT id FROM sys_user WHERE id=#{p0} AND tenant_id=#{p1} AND is_delete=0
     ]]></select>
 
-    <select id="applicationRbacServiceSelect03" resultType="map"><![CDATA[
+    <select id="selectAvailableInstanceRole" resultType="map"><![CDATA[
         SELECT id FROM sys_role WHERE id=#{p0} AND tenant_id=#{p1} AND application_id=#{p2} AND tenant_application_id=#{p3} AND available=1 AND is_delete=0
     ]]></select>
 
-    <select id="applicationRbacServiceSelect04" resultType="map"><![CDATA[
+    <select id="selectRoleInstanceForUpdate" resultType="map"><![CDATA[
         SELECT id FROM sys_tenant_application WHERE id=#{p0} AND tenant_id=#{p1} FOR UPDATE
     ]]></select>
 
-    <select id="applicationRbacServiceSelect05" resultType="map"><![CDATA[
+    <select id="selectAvailableApplicationPermission" resultType="map"><![CDATA[
         SELECT id FROM sys_permission WHERE id=#{p0} AND application_id=#{p1} AND available=1 AND is_delete=0
     ]]></select>
 
-    <select id="applicationRbacServiceSelect06" resultType="map"><![CDATA[
+    <select id="selectInstanceRole" resultType="map"><![CDATA[
         SELECT * FROM sys_role WHERE id=#{p0} AND tenant_id=#{p1} AND application_id=#{p2} AND tenant_application_id=#{p3} AND is_delete=0
     ]]></select>
 
-    <select id="applicationRbacServiceSelect07" resultType="map"><![CDATA[
+    <select id="selectDeleteRoleInstanceForUpdate" resultType="map"><![CDATA[
         SELECT id FROM sys_tenant_application WHERE id=#{p0} AND tenant_id=#{p1} FOR UPDATE
     ]]></select>
 
-    <select id="applicationRbacServiceSelect08" resultType="map"><![CDATA[
+    <select id="selectRoleForDelete" resultType="map"><![CDATA[
         SELECT * FROM sys_role WHERE id=#{p0} AND tenant_id=#{p1} AND tenant_application_id=#{p2} AND is_delete=0
     ]]></select>
 
-    <select id="applicationRbacServiceSelect09" resultType="map"><![CDATA[
+    <select id="selectResourceApplicationForUpdate" resultType="map"><![CDATA[
         SELECT id FROM sys_application WHERE id=#{p0} AND is_delete=0 FOR UPDATE
     ]]></select>
 
-    <select id="applicationRbacServiceSelect11" resultType="map"><![CDATA[
+    <select id="selectMenuParent" resultType="map"><![CDATA[
         SELECT parent_id,type FROM sys_menu WHERE id=#{p0} AND application_id=#{p1} AND is_delete=0
     ]]></select>
 
-    <select id="applicationRbacServiceSelect12" resultType="map"><![CDATA[
+    <select id="selectPermissionByCode" resultType="map"><![CDATA[
         SELECT id FROM sys_permission WHERE code=#{p0} AND application_id=#{p1} AND is_delete=0
     ]]></select>
 
-    <select id="applicationRbacServiceSelect13" resultType="map"><![CDATA[
+    <select id="selectDeleteResourceApplicationForUpdate" resultType="map"><![CDATA[
         SELECT id FROM sys_application WHERE id=#{p0} AND is_delete=0 FOR UPDATE
     ]]></select>
 
-    <select id="applicationRbacServiceSelect15" resultType="map"><![CDATA[
+    <select id="selectInstanceMembers" resultType="map"><![CDATA[
         SELECT ua.id,ua.version,u.id AS user_id,#{p0} AS tenant_application_id,u.username,
        COALESCE(ua.status,'UNASSIGNED') AS status,ua.effective_at,ua.expire_at,ua.comment
 FROM sys_user u LEFT JOIN sys_user_application ua ON ua.tenant_id=u.tenant_id AND ua.user_id=u.id
@@ -124,147 +124,147 @@ FROM sys_user u LEFT JOIN sys_user_application ua ON ua.tenant_id=u.tenant_id AN
 WHERE u.tenant_id=#{p2} AND u.is_delete=0 ORDER BY u.username
     ]]></select>
 
-    <select id="applicationRbacServiceSelect16" resultType="map"><![CDATA[
+    <select id="selectInstanceRoles" resultType="map"><![CDATA[
         SELECT * FROM sys_role WHERE tenant_id=#{p0} AND tenant_application_id=#{p1} AND is_delete=0 ORDER BY sort,id
     ]]></select>
 
-    <select id="applicationRbacServiceSelect18" resultType="map"><![CDATA[
+    <select id="selectMemberRoleIds" resultType="map"><![CDATA[
         SELECT role_id FROM sys_user_role WHERE tenant_id=#{p0} AND tenant_application_id=#{p1} AND user_id=#{p2}
     ]]></select>
 
-    <select id="applicationRbacServiceSelect19" resultType="map"><![CDATA[
+    <select id="selectMemberForUpdate" resultType="map"><![CDATA[
         SELECT * FROM sys_user_application WHERE tenant_id=#{p0} AND tenant_application_id=#{p1} AND user_id=#{p2} AND is_delete=0 FOR UPDATE
     ]]></select>
 
-    <select id="applicationRbacServiceSelect20" resultType="map"><![CDATA[
+    <select id="selectRolePermissionIds" resultType="map"><![CDATA[
         SELECT permission_id FROM sys_role_permission WHERE tenant_id=#{p0} AND tenant_application_id=#{p1} AND role_id=#{p2}
     ]]></select>
 
-    <select id="applicationRbacServiceSelect21" resultType="map"><![CDATA[
+    <select id="selectMenuChildrenByParent" resultType="map"><![CDATA[
         SELECT id FROM sys_menu WHERE parent_id=#{p0} AND application_id=#{p1} AND is_delete=0
     ]]></select>
 
-    <select id="applicationRbacServiceSelect22" resultType="map"><![CDATA[
+    <select id="selectMenuChildren" resultType="map"><![CDATA[
         SELECT id FROM sys_menu WHERE application_id=#{p0} AND parent_id=#{p1} AND is_delete=0
     ]]></select>
 
-    <select id="applicationRbacServiceSelect23" resultType="map"><![CDATA[
+    <select id="selectRolePermissionReferences" resultType="map"><![CDATA[
         SELECT id FROM sys_role_permission WHERE application_id=#{p0} AND permission_id=#{p1}
     ]]></select>
 
-    <select id="applicationRbacServiceSelect24" resultType="map"><![CDATA[
+    <select id="selectMenuPermissionReferences" resultType="map"><![CDATA[
         SELECT id FROM sys_menu WHERE application_id=#{p0} AND permission=#{p1} AND is_delete=0
     ]]></select>
 
-    <update id="applicationRbacServiceUpdate25"><![CDATA[
+    <update id="insertApplicationMember"><![CDATA[
         INSERT INTO sys_user_application (id,tenant_id,tenant_application_id,user_id,status,effective_at,expire_at,granted_by,comment) VALUES (#{p0},#{p1},#{p2},#{p3},#{p4},#{p5},#{p6},#{p7},#{p8})
     ]]></update>
 
-    <update id="applicationRbacServiceUpdate26"><![CDATA[
+    <update id="updateApplicationMember"><![CDATA[
         UPDATE sys_user_application SET status=#{p0},effective_at=#{p1},expire_at=#{p2},comment=#{p3},granted_by=#{p4},granted_at=CURRENT_TIMESTAMP,version=version+1 WHERE id=#{p5} AND version=#{p6}
     ]]></update>
 
-    <update id="applicationRbacServiceUpdate27"><![CDATA[
+    <update id="deleteMemberRoles"><![CDATA[
         DELETE FROM sys_user_role WHERE tenant_id=#{p0} AND tenant_application_id=#{p1} AND user_id=#{p2}
     ]]></update>
 
-    <update id="applicationRbacServiceUpdate28"><![CDATA[
+    <update id="insertMemberRole"><![CDATA[
         INSERT INTO sys_user_role (id,tenant_id,application_id,tenant_application_id,user_id,role_id) VALUES (#{p0},#{p1},#{p2},#{p3},#{p4},#{p5})
     ]]></update>
 
-    <update id="applicationRbacServiceUpdate29"><![CDATA[
+    <update id="insertApplicationRole"><![CDATA[
         INSERT INTO sys_role (id,tenant_id,application_id,tenant_application_id,name,code,data_scope,available,sort) VALUES (#{p0},#{p1},#{p2},#{p3},#{p4},#{p5},#{p6},#{p7},#{p8})
     ]]></update>
 
-    <update id="applicationRbacServiceUpdate30"><![CDATA[
+    <update id="updateApplicationRole"><![CDATA[
         UPDATE sys_role SET name=#{p0},code=#{p1},data_scope=#{p2},available=#{p3},sort=#{p4},version=version+1 WHERE id=#{p5} AND tenant_id=#{p6} AND tenant_application_id=#{p7} AND version=#{p8} AND is_delete=0
     ]]></update>
 
-    <update id="applicationRbacServiceUpdate31"><![CDATA[
+    <update id="deleteRolePermissions"><![CDATA[
         DELETE FROM sys_role_permission WHERE tenant_id=#{p0} AND tenant_application_id=#{p1} AND role_id=#{p2}
     ]]></update>
 
-    <update id="applicationRbacServiceUpdate32"><![CDATA[
+    <update id="insertRolePermission"><![CDATA[
         INSERT INTO sys_role_permission (id,tenant_id,application_id,tenant_application_id,role_id,permission_id) VALUES (#{p0},#{p1},#{p2},#{p3},#{p4},#{p5})
     ]]></update>
 
-    <update id="applicationRbacServiceUpdate33"><![CDATA[
+    <update id="softDeleteApplicationRole"><![CDATA[
         UPDATE sys_role SET is_delete=1,version=version+1 WHERE id=#{p0} AND tenant_id=#{p1} AND tenant_application_id=#{p2} AND version=#{p3} AND is_delete=0
     ]]></update>
 
-    <update id="applicationRbacServiceUpdate34"><![CDATA[
+    <update id="deleteRoleMembers"><![CDATA[
         DELETE FROM sys_user_role WHERE tenant_id=#{p0} AND tenant_application_id=#{p1} AND role_id=#{p2}
     ]]></update>
 
-    <update id="applicationRbacServiceUpdate35"><![CDATA[
+    <update id="deleteDeletedRolePermissions"><![CDATA[
         DELETE FROM sys_role_permission WHERE tenant_id=#{p0} AND tenant_application_id=#{p1} AND role_id=#{p2}
     ]]></update>
 
-    <update id="applicationRbacServiceUpdate36"><![CDATA[
+    <update id="insertApplicationPermission"><![CDATA[
         INSERT INTO sys_permission (id,application_id,name,code,description,available,sort) VALUES (#{p0},#{p1},#{p2},#{p3},#{p4},#{p5},#{p6})
     ]]></update>
 
-    <update id="applicationRbacServiceUpdate37"><![CDATA[
+    <update id="updateApplicationPermission"><![CDATA[
         UPDATE sys_permission SET name=#{p0},description=#{p1},available=#{p2},sort=#{p3},version=version+1 WHERE id=#{p4} AND application_id=#{p5} AND version=#{p6} AND is_delete=0
     ]]></update>
 
-    <update id="applicationRbacServiceUpdate38"><![CDATA[
+    <update id="insertApplicationMenu"><![CDATA[
         INSERT INTO sys_menu (id,application_id,parent_id,type,name,path,component,icon,permission,route_name,open_mode,visible,available,sort) VALUES (#{p0},#{p1},#{p2},#{p3},#{p4},#{p5},#{p6},#{p7},#{p8},#{p9},#{p10},#{p11},#{p12},#{p13})
     ]]></update>
 
-    <update id="applicationRbacServiceUpdate39"><![CDATA[
+    <update id="updateApplicationMenu"><![CDATA[
         UPDATE sys_menu SET parent_id=#{p0},type=#{p1},name=#{p2},path=#{p3},component=#{p4},icon=#{p5},permission=#{p6},route_name=#{p7},open_mode=#{p8},visible=#{p9},available=#{p10},sort=#{p11},version=version+1 WHERE id=#{p12} AND application_id=#{p13} AND version=#{p14} AND is_delete=0
     ]]></update>
 
-    <select id="applicationSessionAdminServiceSelect01" resultType="map"><![CDATA[
+    <select id="selectSsoSessionForUpdate" resultType="map"><![CDATA[
         SELECT * FROM sys_sso_session WHERE session_id=#{p0} AND is_delete=0 FOR UPDATE
     ]]></select>
 
-    <update id="applicationSessionAdminServiceUpdate02"><![CDATA[
+    <update id="revokeSsoSessionByAdmin"><![CDATA[
         UPDATE sys_sso_session SET status='REVOKED',revoked_at=CURRENT_TIMESTAMP,revoke_reason='ADMIN_REVOKED',version=version+1 WHERE tenant_id=#{p0} AND (session_id=#{p1} OR parent_session_id=#{p2}) AND status='ACTIVE'
     ]]></update>
 
-    <select id="ssoServiceSelect01" resultType="map"><![CDATA[
+    <select id="selectSsoSession" resultType="map"><![CDATA[
         SELECT * FROM sys_sso_session WHERE session_id=#{p0} AND is_delete=0
     ]]></select>
 
-    <select id="ssoServiceSelect02" resultType="map"><![CDATA[
+    <select id="selectSsoApplication" resultType="map"><![CDATA[
         SELECT * FROM sys_application WHERE id=#{p0} AND is_delete=0
     ]]></select>
 
-    <select id="ssoServiceSelect03" resultType="map"><![CDATA[
+    <select id="selectActivePlatformSession" resultType="map"><![CDATA[
         SELECT * FROM sys_sso_session WHERE session_id=#{p0} AND application_id=1 AND tenant_id=#{p1} AND user_id=#{p2} AND status='ACTIVE' AND expire_at>CURRENT_TIMESTAMP AND is_delete=0
     ]]></select>
 
-    <select id="ssoServiceSelect04" resultType="map"><![CDATA[
+    <select id="selectSessionByRefreshToken" resultType="map"><![CDATA[
         SELECT * FROM sys_sso_session WHERE refresh_token_hash=#{p0} AND application_id=#{p1} AND status='ACTIVE' AND expire_at>CURRENT_TIMESTAMP AND is_delete=0 FOR UPDATE
     ]]></select>
 
-    <select id="ssoServiceSelect05" resultType="map"><![CDATA[
+    <select id="selectRefreshParentSession" resultType="map"><![CDATA[
         SELECT session_id FROM sys_sso_session WHERE session_id=#{p0} AND tenant_id=#{p1} AND user_id=#{p2} AND status='ACTIVE' AND expire_at>CURRENT_TIMESTAMP AND is_delete=0
     ]]></select>
 
-    <select id="ssoServiceSelect06" resultType="map"><![CDATA[
+    <select id="selectApplicationMenusForProfile" resultType="map"><![CDATA[
         SELECT * FROM sys_menu WHERE application_id=#{p0} AND available=1 AND is_delete=0 ORDER BY sort,id
     ]]></select>
 
-    <select id="ssoServiceSelect07" resultType="map"><![CDATA[
+    <select id="selectActiveParentSession" resultType="map"><![CDATA[
         SELECT session_id FROM sys_sso_session WHERE session_id=#{p0} AND application_id=1 AND tenant_id=#{p1} AND user_id=#{p2} AND status='ACTIVE' AND expire_at>CURRENT_TIMESTAMP AND is_delete=0
     ]]></select>
 
-    <select id="ssoServiceSelect08" resultType="map"><![CDATA[
+    <select id="selectSsoClientForUpdate" resultType="map"><![CDATA[
         SELECT * FROM sys_application WHERE service_id=#{p0} AND status='ENABLED' AND sso_enabled=1 AND is_delete=0 FOR UPDATE
     ]]></select>
 
-    <select id="ssoServiceSelect09" resultType="map"><![CDATA[
+    <select id="selectApplicationRedirectUris" resultType="map"><![CDATA[
         SELECT redirect_uri FROM sys_application_redirect_uri WHERE application_id=#{p0} AND available=1 AND is_delete=0
     ]]></select>
 
-    <select id="ssoServiceSelect10" resultType="map"><![CDATA[
+    <select id="selectUserApplicationRoleCodes" resultType="map"><![CDATA[
         SELECT r.code FROM sys_role r JOIN sys_user_role ur ON ur.role_id=r.id AND ur.tenant_id=r.tenant_id AND ur.tenant_application_id=r.tenant_application_id AND ur.application_id=r.application_id WHERE ur.tenant_id=#{p0} AND ur.user_id=#{p1} AND ur.tenant_application_id=#{p2} AND r.available=1 AND r.is_delete=0 ORDER BY r.sort,r.id
     ]]></select>
 
-    <select id="ssoServiceSelect11" resultType="map"><![CDATA[
+    <select id="selectUserApplicationPermissionCodes" resultType="map"><![CDATA[
         SELECT DISTINCT p.code FROM sys_permission p JOIN sys_role_permission rp ON rp.permission_id=p.id AND rp.application_id=p.application_id
 JOIN sys_role r ON r.id=rp.role_id AND r.tenant_id=rp.tenant_id AND r.tenant_application_id=rp.tenant_application_id AND r.application_id=rp.application_id
 JOIN sys_user_role ur ON ur.role_id=r.id AND ur.tenant_id=r.tenant_id AND ur.tenant_application_id=r.tenant_application_id AND ur.application_id=r.application_id
@@ -272,75 +272,75 @@ WHERE p.application_id=#{p0} AND p.available=1 AND p.is_delete=0 AND r.available
   AND ur.tenant_id=#{p1} AND ur.tenant_application_id=#{p2} AND ur.user_id=#{p3}
     ]]></select>
 
-    <update id="ssoServiceUpdate12"><![CDATA[
+    <update id="updateUserLastLogin"><![CDATA[
         UPDATE sys_user SET last_login_at=CURRENT_TIMESTAMP WHERE id=#{p0} AND tenant_id=#{p1}
     ]]></update>
 
-    <update id="ssoServiceUpdate13"><![CDATA[
+    <update id="insertSsoSession"><![CDATA[
         INSERT INTO sys_sso_session (id,session_id,parent_session_id,tenant_id,application_id,tenant_application_id,user_id,credential_version,refresh_token_hash,expire_at) VALUES (#{p0},#{p1},#{p2},#{p3},#{p4},#{p5},#{p6},#{p7},#{p8},#{p9})
     ]]></update>
 
-    <update id="ssoServiceUpdate14"><![CDATA[
+    <update id="rotateSsoRefreshToken"><![CDATA[
         UPDATE sys_sso_session SET refresh_token_hash=#{p0},last_access_at=CURRENT_TIMESTAMP,version=version+1 WHERE session_id=#{p1} AND refresh_token_hash=#{p2} AND status='ACTIVE'
     ]]></update>
 
-    <select id="tenantApplicationServiceSelect01" resultType="map"><![CDATA[
+    <select id="selectProvisionApplicationForUpdate" resultType="map"><![CDATA[
         SELECT * FROM sys_application WHERE id=#{p0} AND is_delete=0 FOR UPDATE
     ]]></select>
 
-    <select id="tenantApplicationServiceSelect02" resultType="map"><![CDATA[
+    <select id="selectProvisionTenantForUpdate" resultType="map"><![CDATA[
         SELECT * FROM sys_tenant WHERE id=#{p0} AND is_delete=0 FOR UPDATE
     ]]></select>
 
-    <select id="tenantApplicationServiceSelect03" resultType="map"><![CDATA[
+    <select id="selectTenantApplicationForUpdate" resultType="map"><![CDATA[
         SELECT * FROM sys_tenant_application WHERE id=#{p0} AND tenant_id=#{p1} AND application_id=#{p2} AND is_delete=0 FOR UPDATE
     ]]></select>
 
-    <select id="tenantApplicationServiceSelect04" resultType="map"><![CDATA[
+    <select id="selectAvailableTenantUser" resultType="map"><![CDATA[
         SELECT id FROM sys_user WHERE id=#{p0} AND tenant_id=#{p1} AND available=1 AND is_delete=0
     ]]></select>
 
-    <select id="tenantApplicationServiceSelect06" resultType="map"><![CDATA[
+    <select id="selectTenantApplicationCandidates" resultType="map"><![CDATA[
         SELECT id AS user_id,username FROM sys_user WHERE tenant_id=#{p0} AND available=1 AND is_delete=0 ORDER BY username
     ]]></select>
 
-    <select id="tenantApplicationServiceSelect07" resultType="map"><![CDATA[
+    <select id="selectTenantApplicationId" resultType="map"><![CDATA[
         SELECT id FROM sys_tenant_application WHERE tenant_id=#{p0} AND application_id=#{p1} AND is_delete=0
     ]]></select>
 
-    <select id="tenantApplicationServiceSelect08" resultType="map"><![CDATA[
+    <select id="selectProvisionApplicationPermissions" resultType="map"><![CDATA[
         SELECT id FROM sys_permission WHERE application_id=#{p0} AND available=1 AND is_delete=0
     ]]></select>
 
-    <update id="tenantApplicationServiceUpdate09"><![CDATA[
+    <update id="updateTenantApplication"><![CDATA[
         UPDATE sys_tenant_application SET status=#{p0},access_policy=#{p1},entry_url_override=#{p2},effective_at=#{p3},expire_at=#{p4},comment=#{p5},
   suspended_at=CASE WHEN #{p6}='SUSPENDED' THEN CURRENT_TIMESTAMP ELSE suspended_at END,
   closed_at=CASE WHEN #{p7}='CLOSED' THEN CURRENT_TIMESTAMP ELSE closed_at END,
   version=version+1,modify_user=#{p8} WHERE id=#{p9} AND tenant_id=#{p10} AND application_id=#{p11} AND version=#{p12} AND is_delete=0
     ]]></update>
 
-    <update id="tenantApplicationServiceUpdate10"><![CDATA[
+    <update id="insertTenantApplication"><![CDATA[
         INSERT INTO sys_tenant_application (id,tenant_id,application_id,status,access_policy,entry_url_override,opened_at,effective_at,expire_at,comment,create_user,modify_user)
 VALUES (#{p0},#{p1},#{p2},'PENDING',#{p3},#{p4},CURRENT_TIMESTAMP,#{p5},#{p6},#{p7},#{p8},#{p9})
     ]]></update>
 
-    <update id="tenantApplicationServiceUpdate11"><![CDATA[
+    <update id="insertTenantApplicationAdminRole"><![CDATA[
         INSERT INTO sys_role (id,tenant_id,application_id,tenant_application_id,name,code,data_scope) VALUES (#{p0},#{p1},#{p2},#{p3},'应用管理员','app_admin',1)
     ]]></update>
 
-    <update id="tenantApplicationServiceUpdate12"><![CDATA[
+    <update id="insertTenantApplicationRolePermission"><![CDATA[
         INSERT INTO sys_role_permission (id,tenant_id,application_id,tenant_application_id,role_id,permission_id) VALUES (#{p0},#{p1},#{p2},#{p3},#{p4},#{p5})
     ]]></update>
 
-    <update id="tenantApplicationServiceUpdate13"><![CDATA[
+    <update id="insertTenantApplicationUserRole"><![CDATA[
         INSERT INTO sys_user_role (id,tenant_id,application_id,tenant_application_id,user_id,role_id) VALUES (#{p0},#{p1},#{p2},#{p3},#{p4},#{p5})
     ]]></update>
 
-    <update id="tenantApplicationServiceUpdate14"><![CDATA[
+    <update id="insertTenantApplicationGrant"><![CDATA[
         INSERT INTO sys_user_application (id,tenant_id,tenant_application_id,user_id,granted_by) VALUES (#{p0},#{p1},#{p2},#{p3},#{p4})
     ]]></update>
 
-    <update id="tenantApplicationServiceUpdate15"><![CDATA[
+    <update id="activateTenantApplication"><![CDATA[
         UPDATE sys_tenant_application SET status='ACTIVE' WHERE id=#{p0}
     ]]></update>
     <select id="catalogCount" resultType="long">
