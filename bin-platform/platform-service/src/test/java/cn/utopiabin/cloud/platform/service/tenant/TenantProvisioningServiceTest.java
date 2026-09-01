@@ -3,6 +3,7 @@ package cn.utopiabin.cloud.platform.service.tenant;
 import cn.utopiabin.cloud.common.exception.BizException;
 import cn.utopiabin.cloud.platform.config.LoginSecurityProperties;
 import cn.utopiabin.cloud.platform.model.dto.tenant.TenantAdminDTO;
+import cn.utopiabin.cloud.platform.service.application.TenantApplicationService;
 import cn.utopiabin.cloud.platform.util.PasswordValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
 
 class TenantProvisioningServiceTest {
     private JdbcTemplate jdbc;
@@ -43,7 +45,9 @@ class TenantProvisioningServiceTest {
             jdbc.update("INSERT INTO sys_permission(id, code) VALUES(?, ?)", id++, code);
         }
         jdbc.update("INSERT INTO sys_permission(id, code) VALUES(1, '*'),(2, 'platform:tenant:create'),(3, 'platform:menu:update')");
-        service = new TenantProvisioningService(jdbc, encoder, new PasswordValidator(new LoginSecurityProperties()));
+        service = new TenantProvisioningService(jdbc, encoder,
+                new PasswordValidator(new LoginSecurityProperties()),
+                mock(TenantApplicationService.class));
     }
 
     private TenantAdminDTO credentials() {

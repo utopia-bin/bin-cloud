@@ -3,6 +3,7 @@ package cn.utopiabin.cloud.platform.service;
 import cn.utopiabin.cloud.platform.config.LoginSecurityProperties;
 import cn.utopiabin.cloud.platform.config.PlatformBootstrapConfiguration;
 import cn.utopiabin.cloud.platform.config.PlatformBootstrapProperties;
+import cn.utopiabin.cloud.platform.service.application.TenantApplicationService;
 import cn.utopiabin.cloud.platform.util.PasswordValidator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
 
 @ExtendWith(OutputCaptureExtension.class)
 class PlatformBootstrapServiceTest {
@@ -265,6 +267,11 @@ class PlatformBootstrapServiceTest {
         @Bean
         PasswordValidator passwordValidator() {
             return new PasswordValidator(new LoginSecurityProperties());
+        }
+
+        @Bean
+        TenantApplicationService tenantApplicationService() {
+            return mock(TenantApplicationService.class);
         }
     }
 }

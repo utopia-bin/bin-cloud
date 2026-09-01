@@ -26,7 +26,8 @@ class ApplicationSpringWiringTest {
             context.registerBean(org.springframework.jdbc.core.JdbcTemplate.class, () -> fixture.jdbc);
             context.registerBean(DataSourceTransactionManager.class, () -> new DataSourceTransactionManager(fixture.jdbc.getDataSource()));
             context.registerBean(cn.utopiabin.cloud.platform.service.PermissionService.class, () -> fixture.permissions);
-            context.register(ApplicationStore.class, ApplicationBoundary.class, SsoAuditService.class,
+            context.registerBean(ApplicationStore.class, () -> fixture.store);
+            context.register(ApplicationBoundary.class, SsoAuditService.class,
                     ApplicationRevocationService.class, ApplicationCatalogService.class);
             context.refresh();
             var service = context.getBean(ApplicationCatalogService.class);

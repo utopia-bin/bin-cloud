@@ -3,6 +3,9 @@ package cn.utopiabin.cloud.platform.service.application;
 import cn.utopiabin.cloud.common.context.UserContext;
 import cn.utopiabin.cloud.common.context.UserContextHolder;
 import cn.utopiabin.cloud.platform.service.PermissionService;
+import com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean;
+import org.mybatis.spring.SqlSessionTemplate;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -40,21 +43,26 @@ class ApplicationFixture {
         jdbc.execute("CREATE TABLE sys_menu(id BIGINT PRIMARY KEY,application_id BIGINT,parent_id BIGINT DEFAULT 0,type INT DEFAULT 2,name VARCHAR(100),path VARCHAR(200) DEFAULT '',component VARCHAR(200) DEFAULT '',icon VARCHAR(100) DEFAULT '',permission VARCHAR(100) DEFAULT '',route_name VARCHAR(100) DEFAULT '',open_mode VARCHAR(16) DEFAULT 'INTERNAL',sort INT DEFAULT 10,visible INT DEFAULT 1,available INT DEFAULT 1,is_delete INT DEFAULT 0,version INT DEFAULT 0)");
         jdbc.update("INSERT INTO sys_tenant(id,name,code) VALUES(10,'Tenant A','a'),(20,'Tenant B','b')");
         jdbc.update("INSERT INTO sys_user(id,tenant_id,username) VALUES(100,10,'alice'),(101,10,'bob'),(200,20,'charlie')");
-        TenantApplicationService.ensureConsole(jdbc,10);
-        TenantApplicationService.ensureConsole(jdbc,20);
+        var factory = new MybatisSqlSessionFactoryBean();
+        factory.setDataSource(ds);
+        factory.setMapperLocations(new PathMatchingResourcePatternResolver()
+                .getResources("classpath*:mapper/ApplicationPersistenceMapper.xml"));
+        store = new ApplicationStore(new SqlSessionTemplate(factory.getObject()));
+        var tenantApplications = new TenantApplicationService(store, null, null);
+        tenantApplications.ensureConsole(10);
+        tenantApplications.ensureConsole(20);
         jdbc.update("INSERT INTO sys_permission(id,application_id,name,code) VALUES(1,1,'Console','*'),(901,2,'Read','workbench:read'),(902,2,'Execute','workbench:execute')");
         jdbc.update("INSERT INTO sys_menu(id,application_id,name,path,permission) VALUES(901,2,'Workbench','/applications/workbench','workbench:read')");
         UserContextHolder.set(UserContext.of("100","alice","10",""));
         when(permissions.hasPermission(anyLong(),anyString())).thenReturn(true);
-        store = new ApplicationStore(jdbc);
         boundary = new ApplicationBoundary(store,permissions);
         var proxy = new org.springframework.transaction.interceptor.TransactionProxyFactoryBean();
-        proxy.setTarget(new SsoAuditService(jdbc));
+        proxy.setTarget(new SsoAuditService(store));
         proxy.setTransactionManager(new DataSourceTransactionManager(ds));
         var attributes = new java.util.Properties(); attributes.setProperty("*", "PROPAGATION_REQUIRES_NEW");
         proxy.setTransactionAttributes(attributes); proxy.setProxyTargetClass(true); proxy.afterPropertiesSet();
         audit = (SsoAuditService) proxy.getObject();
-        revocations = new ApplicationRevocationService(jdbc,audit);
+        revocations = new ApplicationRevocationService(store,audit);
     }
     long provision(long tenant,long user) {
         var dto = new cn.utopiabin.cloud.platform.model.dto.application.InstanceDTO();

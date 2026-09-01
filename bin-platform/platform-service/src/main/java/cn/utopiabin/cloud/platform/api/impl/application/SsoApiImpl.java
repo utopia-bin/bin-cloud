@@ -2,8 +2,12 @@ package cn.utopiabin.cloud.platform.api.impl.application;
 
 import cn.utopiabin.cloud.common.exception.BizException;
 import cn.utopiabin.cloud.common.model.vo.PageResult;
-import cn.utopiabin.cloud.platform.model.dto.application.*;
-import cn.utopiabin.cloud.platform.model.vo.application.*;
+import cn.utopiabin.cloud.platform.model.dto.application.SsoAuthorizeDTO;
+import cn.utopiabin.cloud.platform.model.dto.application.SsoExchangeDTO;
+import cn.utopiabin.cloud.platform.model.dto.application.SsoRefreshDTO;
+import cn.utopiabin.cloud.platform.model.vo.application.ApplicationProfileVO;
+import cn.utopiabin.cloud.platform.model.vo.application.SsoAuthorizeVO;
+import cn.utopiabin.cloud.platform.model.vo.application.SsoTokenVO;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import java.util.List;
