@@ -1,12 +1,11 @@
 package cn.utopiabin.cloud.platform.mapper.iam;
 
-import cn.utopiabin.cloud.platform.entity.iam.SysRole;
 import cn.utopiabin.cloud.platform.entity.iam.SysUser;
+import com.baomidou.mybatisplus.annotation.InterceptorIgnore;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-
-import java.util.List;
 
 /**
  * 系统用户 Mapper
@@ -16,11 +15,10 @@ import java.util.List;
 @Mapper
 public interface SysUserMapper extends BaseMapper<SysUser> {
 
-    /**
-     * 根据用户 ID 查询角色列表 (JOIN sys_user_role + sys_role)
-     *
-     * @param userId 用户 ID
-     * @return 角色列表
-     */
-    List<SysRole> selectRolesByUserId(@Param("userId") Long userId);
+  /** 初始化重名检查由目标租户限定，平台启动时没有登录上下文。 */
+  @InterceptorIgnore(tenantLine = "true")
+  List<Long> selectInitializationUserIdsForUpdate(
+      @Param("tenantId") long tenantId,
+      @Param("username") String username,
+      @Param("includeDeleted") boolean includeDeleted);
 }

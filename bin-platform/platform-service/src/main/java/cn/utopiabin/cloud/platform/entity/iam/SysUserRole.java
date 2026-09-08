@@ -19,15 +19,14 @@ import lombok.NoArgsConstructor;
 @Schema(description = "用户角色关联")
 public class SysUserRole extends LinkEntity {
 
-    /**
-     * 用户 ID
-     */
-    @Schema(description = "用户ID")
-    private Long userId;
+  @Schema(description = "所属应用产品ID；平台IAM固定为平台壳应用")
+  private Long applicationId;
 
-    /**
-     * 角色 ID
-     */
-    @Schema(description = "角色ID")
-    private Long roleId;
+  /** 用户 ID */
+  @Schema(description = "用户ID")
+  private Long userId;
+
+  /** 角色 ID */
+  @Schema(description = "角色ID")
+  private Long roleId;
 }

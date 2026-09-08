@@ -19,63 +19,52 @@ import lombok.NoArgsConstructor;
 @Schema(description = "系统菜单")
 public class SysMenu extends BaseEntity {
 
-    /**
-     * 父级 ID (顶级为 0)
-     */
-    @Schema(description = "父级ID，顶级为0")
-    private Long parentId;
+  @Schema(description = "所属应用产品ID；平台IAM固定为平台壳应用")
+  private Long applicationId;
 
-    /**
-     * 菜单类型: 1 目录 2 菜单 3 按钮
-     */
-    @Schema(description = "菜单类型: 1目录 2菜单 3按钮")
-    private Integer type;
+  @Schema(description = "应用内唯一的路由名称")
+  private String routeName;
 
-    /**
-     * 菜单名称
-     */
-    @Schema(description = "菜单名称")
-    private String name;
+  @Schema(description = "打开方式：INTERNAL应用内跳转、EXTERNAL外部链接")
+  private String openMode;
 
-    /**
-     * 路由路径
-     */
-    @Schema(description = "路由路径")
-    private String path;
+  /** 父级 ID (顶级为 0) */
+  @Schema(description = "父级ID，顶级为0")
+  private Long parentId;
 
-    /**
-     * 组件路径
-     */
-    @Schema(description = "组件路径")
-    private String component;
+  /** 菜单类型: 1 目录 2 菜单 3 按钮 */
+  @Schema(description = "菜单类型: 1目录 2菜单 3按钮")
+  private Integer type;
 
-    /**
-     * 菜单图标
-     */
-    @Schema(description = "菜单图标")
-    private String icon;
+  /** 菜单名称 */
+  @Schema(description = "菜单名称")
+  private String name;
 
-    /**
-     * 权限标识 (如 system:user:add)
-     */
-    @Schema(description = "权限标识")
-    private String permission;
+  /** 路由路径 */
+  @Schema(description = "路由路径")
+  private String path;
 
-    /**
-     * 排序码
-     */
-    @Schema(description = "排序码")
-    private Integer sort;
+  /** 组件路径 */
+  @Schema(description = "组件路径")
+  private String component;
 
-    /**
-     * 是否可见
-     */
-    @Schema(description = "是否可见")
-    private Boolean visible;
+  /** 菜单图标 */
+  @Schema(description = "菜单图标")
+  private String icon;
 
-    /**
-     * 是否启用
-     */
-    @Schema(description = "是否启用")
-    private Boolean available;
+  /** 权限标识 (如 system:user:add) */
+  @Schema(description = "权限标识")
+  private String permission;
+
+  /** 排序码 */
+  @Schema(description = "排序码")
+  private Integer sort;
+
+  /** 是否可见 */
+  @Schema(description = "是否可见")
+  private Boolean visible;
+
+  /** 是否启用 */
+  @Schema(description = "是否启用")
+  private Boolean available;
 }

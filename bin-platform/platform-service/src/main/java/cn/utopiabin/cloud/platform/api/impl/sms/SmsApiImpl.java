@@ -2,7 +2,7 @@ package cn.utopiabin.cloud.platform.api.impl.sms;
 
 import cn.utopiabin.cloud.platform.api.sms.SmsApi;
 import cn.utopiabin.cloud.platform.model.dto.sms.SmsCodeSendDTO;
-import cn.utopiabin.cloud.platform.service.SmsService;
+import cn.utopiabin.cloud.platform.service.sms.SmsService;
 import lombok.RequiredArgsConstructor;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.springframework.validation.annotation.Validated;
@@ -13,10 +13,10 @@ import org.springframework.validation.annotation.Validated;
 @RequiredArgsConstructor
 public class SmsApiImpl implements SmsApi {
 
-    private final SmsService smsService;
+  private final SmsService smsService;
 
-    @Override
-    public void sendVerificationCode(SmsCodeSendDTO dto) {
-        smsService.sendVerificationCode(dto);
-    }
+  @Override
+  public void sendVerificationCode(SmsCodeSendDTO dto) {
+    smsService.sendVerificationCode(dto);
+  }
 }

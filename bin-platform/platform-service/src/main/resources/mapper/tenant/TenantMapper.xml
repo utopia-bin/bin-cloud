@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.utopiabin.cloud.platform.mapper.tenant.TenantMapper">
+    <select id="selectByCodeIncludingDeletedForUpdate" resultType="cn.utopiabin.cloud.platform.entity.tenant.Tenant">
+        SELECT id, code, available, is_delete, expire_time
+        FROM sys_tenant
+        WHERE code = #{code}
+        FOR UPDATE
+    </select>
+</mapper>

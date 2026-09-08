@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.utopiabin.cloud.platform.mapper.application.ApplicationMemberMapper">
+    <select id="selectInstanceMembers" resultType="cn.utopiabin.cloud.platform.model.vo.application.UserApplicationVO">
+        SELECT ua.id, ua.version, u.id AS user_id, #{instanceId} AS tenant_application_id,
+               u.username, COALESCE(ua.status, 'UNASSIGNED') AS status,
+               ua.effective_at, ua.expire_at, ua.comment
+        FROM sys_user u
+        LEFT JOIN sys_user_application ua
+            ON ua.tenant_id = u.tenant_id AND ua.user_id = u.id
+            AND ua.tenant_application_id = #{instanceId} AND ua.is_delete = 0
+        WHERE u.tenant_id = #{tenantId} AND u.is_delete = 0
+        ORDER BY u.username
+    </select>
+</mapper>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.utopiabin.cloud.platform.mapper.application.ApplicationSessionMapper">
+    <sql id="sessionConditions">
+        <if test="tenantId != null">AND s.tenant_id = #{tenantId}</if>
+        <if test="query.applicationId != null">AND s.application_id = #{query.applicationId}</if>
+        <if test="query.tenantApplicationId != null">AND s.tenant_application_id = #{query.tenantApplicationId}</if>
+        <if test="query.status != null and query.status != ''">
+            AND (CASE WHEN s.status = 'ACTIVE' AND s.expire_at &lt;= CURRENT_TIMESTAMP THEN 'EXPIRED' ELSE s.status END) = #{query.status}
+        </if>
+    </sql>
+
+    <select id="sessionCount" resultType="long">
+        SELECT COUNT(*) FROM sys_sso_session s
+        JOIN sys_application a ON a.id = s.application_id
+        JOIN sys_user u ON u.id = s.user_id AND u.tenant_id = s.tenant_id
+        WHERE s.is_delete = 0 <include refid="sessionConditions"/>
+    </select>
+
+    <select id="sessionPage" resultType="cn.utopiabin.cloud.platform.model.vo.application.SsoSessionVO">
+        SELECT s.session_id, s.parent_session_id, s.tenant_id, s.application_id,
+               s.tenant_application_id, s.user_id, s.auth_time, s.expire_at,
+               s.revoked_at, s.revoke_reason, a.name AS application_name, u.username,
+               CASE WHEN s.status = 'ACTIVE' AND s.expire_at &lt;= CURRENT_TIMESTAMP THEN 'EXPIRED' ELSE s.status END AS status
+        FROM sys_sso_session s
+        JOIN sys_application a ON a.id = s.application_id
+        JOIN sys_user u ON u.id = s.user_id AND u.tenant_id = s.tenant_id
+        WHERE s.is_delete = 0 <include refid="sessionConditions"/>
+        ORDER BY s.auth_time DESC, s.id DESC LIMIT #{limit} OFFSET #{offset}
+    </select>
+</mapper>

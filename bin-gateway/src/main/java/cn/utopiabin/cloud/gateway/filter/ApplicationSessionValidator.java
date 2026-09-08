@@ -1,19 +1,24 @@
 package cn.utopiabin.cloud.gateway.filter;
 
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
+import cn.utopiabin.cloud.platform.api.application.SsoApi;
 import java.time.Duration;
+import org.apache.dubbo.config.annotation.DubboReference;
+import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
+/** 网关应用会话校验器，通过平台契约校验服务端会话状态。 */
 @Component
 public class ApplicationSessionValidator {
-    private final WebClient client;
-    public ApplicationSessionValidator(@Qualifier("sessionWebClient") WebClient.Builder builder) { client=builder.build(); }
-    public Mono<Boolean> valid(String token,String audience) {
-        return client.get().uri("http://platform-service/internal/sso/validate")
-                .header("Authorization","Bearer "+token).header("X-Expected-Audience",audience)
-                .exchangeToMono(response->response.releaseBody().thenReturn(response.statusCode().is2xxSuccessful()))
-                .timeout(Duration.ofSeconds(3)).onErrorReturn(false);
-    }
+
+  @DubboReference(check = false, timeout = 3000)
+  private SsoApi ssoApi;
+
+  public Mono<Boolean> valid(String token, String audience) {
+    // Dubbo 同步调用必须离开 Netty 事件循环，避免认证请求阻塞网关工作线程。
+    return Mono.fromCallable(() -> ssoApi.validateSession(token, audience))
+        .subscribeOn(Schedulers.boundedElastic())
+        .timeout(Duration.ofSeconds(3))
+        .onErrorReturn(false);
+  }
 }

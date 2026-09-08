@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.utopiabin.cloud.platform.mapper.application.TenantApplicationMapper">
+    <sql id="tenantApplicationColumns">
+        ta.id, ta.tenant_id, ta.application_id, ta.status, ta.access_policy,
+        ta.entry_url_override, ta.opened_at, ta.effective_at, ta.expire_at,
+        ta.suspended_at, ta.closed_at, ta.comment, ta.version, a.code AS application_code, a.name AS application_name, a.icon_url,
+        t.name AS tenant_name, COALESCE(NULLIF(ta.entry_url_override, ''), a.entry_url) AS entry_url,
+        CASE WHEN ta.status &lt;&gt; 'ACTIVE' THEN ta.status
+             WHEN a.status &lt;&gt; 'ENABLED' OR a.is_delete &lt;&gt; 0 OR t.available &lt;&gt; 1 OR t.is_delete &lt;&gt; 0 THEN 'UNAVAILABLE'
+             WHEN ta.expire_at &lt;= CURRENT_TIMESTAMP OR t.expire_time &lt;= CURRENT_TIMESTAMP THEN 'EXPIRED'
+             WHEN ta.effective_at &gt; CURRENT_TIMESTAMP THEN 'PENDING'
+             ELSE 'ACTIVE' END AS effective_status
+    </sql>
+
+    <sql id="tenantApplicationFrom">
+        FROM sys_tenant_application ta
+        JOIN sys_application a ON a.id = ta.application_id
+        JOIN sys_tenant t ON t.id = ta.tenant_id
+        WHERE ta.is_delete = 0
+    </sql>
+
+    <sql id="tenantApplicationConditions">
+        <if test="tenantId != null">AND ta.tenant_id = #{tenantId}</if>
+        <if test="query.applicationId != null">AND ta.application_id = #{query.applicationId}</if>
+        <if test="query.status != null and query.status != ''">AND ta.status = #{query.status}</if>
+        <if test="query.keyword != null and query.keyword != ''">
+            AND (a.name LIKE CONCAT('%', #{query.keyword}, '%') OR t.name LIKE CONCAT('%', #{query.keyword}, '%'))
+        </if>
+    </sql>
+
+    <select id="tenantApplicationCount" resultType="long">
+        SELECT COUNT(*) <include refid="tenantApplicationFrom"/> <include refid="tenantApplicationConditions"/>
+    </select>
+
+    <select id="tenantApplicationPage" resultType="cn.utopiabin.cloud.platform.model.vo.application.TenantApplicationVO">
+        SELECT <include refid="tenantApplicationColumns"/>
+        <include refid="tenantApplicationFrom"/> <include refid="tenantApplicationConditions"/>
+        ORDER BY ta.id DESC LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="tenantApplicationMine" resultType="cn.utopiabin.cloud.platform.model.vo.application.TenantApplicationVO">
+        SELECT <include refid="tenantApplicationColumns"/>
+        <include refid="tenantApplicationFrom"/> AND ta.tenant_id = #{tenantId}
+        ORDER BY a.sort, ta.id
+    </select>
+    <select id="selectUserAccess" resultType="cn.utopiabin.cloud.platform.repository.application.model.ApplicationAccessRecord">
+        SELECT ta.id, ta.version, ta.tenant_id, ta.application_id, ta.status, ta.access_policy,
+               ta.effective_at, ta.expire_at,
+               a.code AS application_code, a.name AS application_name,
+               a.status AS product_status, a.sso_enabled, a.service_id, a.entry_url, a.icon_url,
+               t.available AS tenant_available, t.is_delete AS tenant_deleted,
+               t.expire_time AS tenant_expire,
+               u.id AS user_id, u.username, u.available AS user_available,
+               u.is_delete AS user_deleted, u.credential_version
+        FROM sys_tenant_application ta
+        JOIN sys_application a ON a.id = ta.application_id AND a.is_delete = 0
+        JOIN sys_tenant t ON t.id = ta.tenant_id
+        JOIN sys_user u ON u.tenant_id = ta.tenant_id AND u.id = #{userId}
+        WHERE ta.id = #{instanceId} AND ta.tenant_id = #{tenantId} AND ta.is_delete = 0
+    </select>
+</mapper>

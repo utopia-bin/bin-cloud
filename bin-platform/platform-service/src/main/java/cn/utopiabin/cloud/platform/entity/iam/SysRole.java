@@ -19,42 +19,33 @@ import lombok.NoArgsConstructor;
 @Schema(description = "系统角色")
 public class SysRole extends BaseEntity {
 
-    @Schema(description = "角色所属租户应用实例；原IAM接口固定为平台壳实例")
-    private Long tenantApplicationId;
+  @Schema(description = "所属应用产品ID；平台IAM固定为平台壳应用")
+  private Long applicationId;
 
-    /**
-     * 角色名称
-     */
-    @Schema(description = "角色名称")
-    private String name;
+  @Schema(description = "角色所属租户应用实例；原IAM接口固定为平台壳实例")
+  private Long tenantApplicationId;
 
-    /**
-     * 角色编码 (唯一)
-     */
-    @Schema(description = "角色编码（唯一）")
-    private String code;
+  /** 角色名称 */
+  @Schema(description = "角色名称")
+  private String name;
 
-    /**
-     * 数据权限范围: 1全部 2本部门 3本部门及以下 4仅本人
-     */
-    @Schema(description = "数据权限范围: 1全部 2本部门 3本部门及以下 4仅本人")
-    private Integer dataScope;
+  /** 角色编码 (唯一) */
+  @Schema(description = "角色编码（唯一）")
+  private String code;
 
-    /**
-     * 是否启用
-     */
-    @Schema(description = "是否启用")
-    private Boolean available;
+  /** 数据权限范围: 1全部 2本部门 3本部门及以下 4仅本人 */
+  @Schema(description = "数据权限范围: 1全部 2本部门 3本部门及以下 4仅本人")
+  private Integer dataScope;
 
-    /**
-     * 排序码
-     */
-    @Schema(description = "排序码")
-    private Integer sort;
+  /** 是否启用 */
+  @Schema(description = "是否启用")
+  private Boolean available;
 
-    /**
-     * 备注
-     */
-    @Schema(description = "备注")
-    private String comment;
+  /** 排序码 */
+  @Schema(description = "排序码")
+  private Integer sort;
+
+  /** 备注 */
+  @Schema(description = "备注")
+  private String comment;
 }

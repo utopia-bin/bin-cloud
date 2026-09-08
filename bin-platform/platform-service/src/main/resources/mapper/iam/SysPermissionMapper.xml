@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.utopiabin.cloud.platform.mapper.iam.SysPermissionMapper">
+    <select id="selectByRoleIds" resultType="cn.utopiabin.cloud.platform.entity.iam.SysPermission">
+        SELECT DISTINCT p.id, p.tenant_id, p.application_id, p.name, p.code, p.description,
+               p.available, p.sort, p.version, p.is_delete,
+               p.gmt_create, p.gmt_modify, p.create_user, p.modify_user
+        FROM sys_permission p
+        INNER JOIN sys_role_permission rp
+            ON rp.permission_id = p.id AND rp.application_id = p.application_id
+        WHERE p.is_delete = 0 AND p.available = 1 AND rp.role_id IN
+        <foreach collection="roleIds" item="roleId" open="(" separator="," close=")">
+            #{roleId}
+        </foreach>
+        ORDER BY p.sort ASC, p.code ASC
+    </select>
+
+    <!-- 普通先查后插存在并发空窗；唯一键冲突只加锁，不覆盖已有权限配置。 -->
+    <insert id="ensurePlatformWildcard">
+        INSERT INTO sys_permission (id, application_id, name, code, description)
+        VALUES (#{id}, 1, '全部权限', '*', '仅供平台内置超级管理员使用')
+        ON DUPLICATE KEY UPDATE code = code
+    </insert>
+
+    <select id="lockPlatformWildcard" resultType="cn.utopiabin.cloud.platform.entity.iam.SysPermission">
+        SELECT id, tenant_id, application_id, code, available, is_delete
+        FROM sys_permission
+        WHERE application_id = 1 AND code = '*'
+        FOR UPDATE
+    </select>
+</mapper>

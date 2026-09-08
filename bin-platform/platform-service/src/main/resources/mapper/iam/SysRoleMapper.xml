@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.utopiabin.cloud.platform.mapper.iam.SysRoleMapper">
+    <select id="selectRolesByUserId" resultType="cn.utopiabin.cloud.platform.entity.iam.SysRole">
+        SELECT r.id, r.tenant_id, r.application_id, r.tenant_application_id,
+               r.name, r.code, r.data_scope, r.available, r.sort, r.comment,
+               r.version, r.is_delete, r.gmt_create, r.gmt_modify, r.create_user, r.modify_user
+        FROM sys_role r
+        INNER JOIN sys_user_role ur
+            ON r.id = ur.role_id AND r.tenant_id = ur.tenant_id
+            AND r.application_id = ur.application_id
+            AND r.tenant_application_id = ur.tenant_application_id
+        WHERE ur.user_id = #{userId} AND r.is_delete = 0 AND r.available = 1
+        ORDER BY r.sort ASC, r.id DESC
+    </select>
+
+    <!-- 已删除角色也代表完成过初始化，不能再次创建管理员。 -->
+    <select id="selectConsoleRoleIdsIncludingDeletedForUpdate" resultType="long">
+        SELECT id FROM sys_role
+        WHERE application_id = 1 AND code = #{code}
+        <if test="tenantId != null">AND tenant_id = #{tenantId}</if>
+        FOR UPDATE
+    </select>
+</mapper>

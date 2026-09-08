@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.utopiabin.cloud.platform.mapper.application.ApplicationRedirectMapper">
+    <!-- 逻辑删除仍占用应用与回调地址唯一键，因此全量替换必须物理清理。 -->
+    <delete id="physicallyDeleteByApplication">
+        DELETE FROM sys_application_redirect_uri WHERE application_id = #{applicationId}
+    </delete>
+</mapper>
